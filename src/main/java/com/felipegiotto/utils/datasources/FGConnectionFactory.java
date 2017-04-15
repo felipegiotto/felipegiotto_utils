@@ -18,6 +18,7 @@ import com.felipegiotto.utils.FGDatabaseUtils;
 /**
  * Classe que gerencia o pool de conexões da aplicação, que pode ser configurado:
  * 1. Através de JNDI, declarando uma tag <Resource .../> no arquivo context.xml
+ *    Ver método "loadFromWebContext"
  * 2. Manualmente, para facilitar testes unitários e execução direta de classes 
  *    pela IDE
  *    
@@ -49,14 +50,6 @@ public class FGConnectionFactory {
 		}
 	}
 
-	private static void gravarDataSourceNoCache(String name, DataSource ds) {
-		dsMap.put(name, ds);
-
-		if (defaultJdbcName == null) {
-			defaultJdbcName = name;
-		}
-	}
-	
 	/**
 	 * Fonte: https://examples.javacodegeeks.com/core-java/apache/commons/dbcp/basicdatasource/create-a-simple-basicdatasource-object/
 	 * 
@@ -69,6 +62,14 @@ public class FGConnectionFactory {
 		ds.setUrl(url);
 		
 		gravarDataSourceNoCache(jdbcName, ds);
+	}
+	
+	private static void gravarDataSourceNoCache(String name, DataSource ds) {
+		dsMap.put(name, ds);
+
+		if (defaultJdbcName == null) {
+			defaultJdbcName = name;
+		}
 	}
 	
 	public static DataSource getDataSourceByJndiName(String jdbcName) throws SQLException {
