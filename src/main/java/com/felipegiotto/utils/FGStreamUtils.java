@@ -8,6 +8,11 @@ import java.io.InputStreamReader;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+/**
+ * Métodos auxiliares referentes a streams
+ * 
+ * @author felipegiotto@gmail.com
+ */
 public class FGStreamUtils {
 
 	private static final Logger LOGGER = LogManager.getLogger(FGStreamUtils.class);

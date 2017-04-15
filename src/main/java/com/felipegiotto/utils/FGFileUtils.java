@@ -1,10 +1,68 @@
 package com.felipegiotto.utils;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.Properties;
 
+/**
+ * Métodos auxiliares referentes a arquivos ou pastas
+ * 
+ * @author felipegiotto@gmail.com
+ */
 public class FGFileUtils {
+	
+	/**
+	 * Carrega um objeto Properties de um arquivo
+	 * 
+	 * @param arquivo : arquivo de entrada, com os dados que serão populados no objeto
+	 * @param obrigatorio : se "true" e se o arquivo de entrada não existir, lança uma exceção
+	 * @return
+	 * @throws IOException
+	 */
+	public static Properties carregarArquivoProperties(File arquivo, boolean obrigatorio) throws IOException {
+		Properties props = new Properties();
+		if (arquivo.exists() && arquivo.isFile()) {
+			try (FileInputStream fis = new FileInputStream(arquivo)) {
+				props.load(fis);
+			}
+		} else if (obrigatorio) {
+			throw new FileNotFoundException("Arquivo não existe: " + arquivo);
+		}
+		return props;
+	}
+
+	
+	/**
+	 * Grava um objeto Properties em um arquivo.
+	 * @param properties
+	 * @param arquivoSaida
+	 * @param comentario : texto inserido na primeira linha do arquivo
+	 * @throws IOException
+	 */
+	public static void salvarArquivoProperties(Properties properties, File arquivoSaida, String comentario)
+			throws IOException {
+		try (FileOutputStream fos = new FileOutputStream(arquivoSaida)) {
+			properties.store(fos, comentario);
+		}
+	}
+
+
+	public static void garantirQuePastaExista(File in) throws IOException {
+		if (!in.isDirectory()) {
+			throw new IOException("Pasta não existe: " + in);
+		}
+	}
+
+	
+	public static void garantirQueArquivoOuPastaExista(File in) throws IOException {
+		if (!in.exists()) {
+			throw new IOException("Arquivo/Pasta não existe: " + in);
+		}
+	}
+	
 
 	/**
 	 * Indica se uma pasta (child) é subdiretório de outra (base)
@@ -30,6 +88,7 @@ public class FGFileUtils {
 		return false;
 	}
 
+	
 	public static File tentarIdentificarArquivoDaString(String caminho, boolean obrigatorio) throws FileNotFoundException {
 		
 		// Verifica se o caminho informado existe, depois de retirar espaços em
@@ -52,5 +111,4 @@ public class FGFileUtils {
 			return null;
 		}
 	}
-
 }

@@ -1,6 +1,7 @@
 package com.felipegiotto.utils;
 
 import java.lang.reflect.InvocationTargetException;
+
 import java.lang.reflect.Method;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -9,7 +10,11 @@ import java.sql.Types;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
+/**
+ * Métodos auxiliares referentes a bancos de dados
+ * 
+ * @author felipegiotto@gmail.com
+ */
 public class FGDatabaseUtils {
 
 	private static final Logger LOGGER = LogManager.getLogger(FGDatabaseUtils.class);

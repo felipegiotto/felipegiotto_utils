@@ -7,12 +7,17 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+/**
+ * Métodos auxiliares referentes a processos (comandos executáveis).
+ * 
+ * @author felipegiotto@gmail.com
+ */
 public class FGProcessUtils {
 
 	private static final Logger LOGGER = LogManager.getLogger(FGProcessUtils.class);
 	
 	/**
-	 * Confere se um processo retornou o valor esperado. Se não, lança uma exceção.
+	 * Confere se um processo retornou o valor esperado. Se não, lança uma RuntimeException.
 	 * 
 	 * @param process
 	 * @param valorEsperado
@@ -25,7 +30,7 @@ public class FGProcessUtils {
 	}
 
 	/**
-	 * Confere se um processo retornou 0. Se não, lança uma exceção.
+	 * Confere se um processo retornou 0. Se não, lança uma RuntimeException.
 	 * 
 	 * @param process
 	 */
@@ -56,10 +61,12 @@ public class FGProcessUtils {
 	 * @param parametros
 	 * @param escreverSaidaNosLogs : indica se cada linha retornada pelo processo
 	 * deverá ser registrada nos logs
+	 * @param resultadoEsperado : se não nulo, verificará se o comando retornou o 
+	 * valor informado
 	 * @return
 	 * @throws IOException
 	 */
-	public static Process executarComandoAguardarTermino(List<String> parametros, boolean escreverSaidaNosLogs) throws IOException, InterruptedException {
+	public static Process executarComandoAguardarTermino(List<String> parametros, boolean escreverSaidaNosLogs, Integer resultadoEsperado) throws IOException, InterruptedException {
 
 		// Executa o comando
 		Process p = executarComando(parametros);
@@ -71,6 +78,10 @@ public class FGProcessUtils {
 		// Aguarda o termino e verifica se ocorreu erro
 		p.waitFor();
 
+		// Confere o retorno
+		if (resultadoEsperado != null) {
+			conferirRetornoProcesso(p, resultadoEsperado);
+		}
 		return p;
 	}
 }
