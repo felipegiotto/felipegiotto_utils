@@ -10,6 +10,12 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.flywaydb.core.Flyway;
 
+/**
+ * Servlet que pode ser estendido, em uma aplicação Web, para configurar automaticamente 
+ * os DataSources da aplicação e migrar o banco de dados.
+ * 
+ * @author felipegiotto@gmail.com
+ */
 public class FGDatabaseInitServlet extends HttpServlet {
 
 	private static final long serialVersionUID = 1L;
