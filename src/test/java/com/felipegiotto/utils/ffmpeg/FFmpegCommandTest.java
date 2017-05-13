@@ -1,6 +1,13 @@
 package com.felipegiotto.utils.ffmpeg;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
+
+import java.awt.Point;
+import java.io.File;
+import java.io.IOException;
 
 import org.apache.commons.lang3.StringUtils;
 import org.junit.BeforeClass;
@@ -126,10 +133,30 @@ public class FFmpegCommandTest {
 	@Test
 	public void configurarPadraoCentralMultimidia() {
 		FFmpegCommand ffmpeg = criarObjetoMinimo();
-		ffmpeg.setInputFile("teste.avi");
+		ffmpeg.setInputFile("src/test/resources/video_1280x544.mov");
 		ffmpeg.setOutputFile("teste_output.avi");
 		ffmpeg.configurarPadraoCentralMultimidia(true);
-		assertEquals("nice -n 15 ffmpeg -i teste.avi -c:v libxvid -preset slow -qscale:v 10 -vf scale=w=700:h=480:force_original_aspect_ratio=decrease -c:a libmp3lame -qscale:a 5 teste_output.avi", StringUtils.join(ffmpeg.buildParameters(), " "));
+		assertEquals("nice -n 15 ffmpeg -i src/test/resources/video_1280x544.mov -c:v libxvid -preset slow -qscale:v 10 -vf scale=w=720:h=304 -c:a libmp3lame -qscale:a 5 teste_output.avi", StringUtils.join(ffmpeg.buildParameters(), " "));
 	}
 
+	@Test
+	public void analisarResolucaoArquivoVideo() throws Exception {
+		File input = new File("src/test/resources/video_1280x544.mov");
+		Point resolucao = FFmpegCommand.getResolucaoVideo(input);
+		assertNotNull(resolucao);
+		assertEquals(1280, resolucao.getX(), 0.001);
+		assertEquals(544, resolucao.getY(), 0.001);
+	}
+	
+	@Test
+	public void analisarDuracaoArquivoVideo() throws Exception {
+		File input = new File("src/test/resources/video_1280x544.mov");
+		assertEquals(2, FFmpegCommand.getDuracaoSegundosVideo(input));
+	}
+
+	@Test
+	public void isArquivoVideoTest() {
+		assertTrue(FFmpegCommand.isArquivoVideo("video.avi"));
+		assertFalse(FFmpegCommand.isArquivoVideo("imagem.jpg"));
+	}
 }

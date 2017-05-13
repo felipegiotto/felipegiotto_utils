@@ -91,9 +91,11 @@ public class FGFileUtils {
 	
 	public static File tentarIdentificarArquivoDaString(String caminho, boolean obrigatorio) throws FileNotFoundException {
 		
-		// Verifica se o caminho informado existe, depois de retirar espaços em
-		// branco do início e do fim.
-		File f = new File(caminho.trim());
+		// Remove espaços em branco do início e do fim.
+		caminho = caminho.trim();
+		
+		// Verifica se o caminho informado existe
+		File f = new File(caminho);
 		if (f.exists()) {
 			return f;
 		}

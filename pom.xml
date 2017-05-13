@@ -28,6 +28,23 @@
 
 	<dependencies>
 
+		<!-- Manipulacao de Streams -->
+		<!-- https://mvnrepository.com/artifact/commons-io/commons-io -->
+		<dependency>
+		    <groupId>commons-io</groupId>
+		    <artifactId>commons-io</artifactId>
+		    <version>2.5</version>
+		</dependency>
+		
+		<!-- ORM -->
+		<!-- https://mvnrepository.com/artifact/org.javalite/activejdbc -->
+<!-- 		<dependency>
+		    <groupId>org.javalite</groupId>
+		    <artifactId>activejdbc</artifactId>
+		    <version>1.4.13.j7</version>
+		</dependency>
+ -->
+
 		<!-- https://mvnrepository.com/artifact/javax.servlet/javax.servlet-api -->
 		<dependency>
 			<groupId>javax.servlet</groupId>

@@ -1,12 +1,17 @@
 package com.felipegiotto.utils.ffmpeg;
 
+import java.awt.Point;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -34,8 +39,9 @@ public class FFmpegCommand {
 	 * Escreve o progresso do ffmpeg no logger.
 	 * 
 	 * @throws IOException
+	 * @throws InterruptedException 
 	 */
-	public void runAndWait(boolean escreverRetornoLogs) throws IOException {
+	public void runAndWait(boolean escreverRetornoLogs) throws IOException, InterruptedException {
 		
 		// Executa o FFmpeg
 		Process p = run();
@@ -45,11 +51,7 @@ public class FFmpegCommand {
 		FGStreamUtils.consomeStream(p.getErrorStream(), escreverRetornoLogs ? "STDERR" : null);
 
 		// Aguarda o termino e verifica se ocorreu erro
-		try {
-			p.waitFor();
-		} catch (InterruptedException e) {
-			throw new IOException(e);
-		}
+		p.waitFor();
 		FGProcessUtils.conferirRetornoProcesso(p);
 	}
 	
@@ -452,7 +454,7 @@ public class FFmpegCommand {
 		setVideoEncoderCodec("libxvid");
 
 		// Preset (qualidade x velocidade)
-		setVideoAddExtraParameters("-preset", "slow");     // Velocidade (em video de exemplo): 0.130x (padrao)
+		//setVideoAddExtraParameters("-preset", "slow");     // Velocidade (em video de exemplo): 0.130x (padrao)
 
 		// Qualidade
 		setVideoAddExtraParameters("-qscale:v", "10");
@@ -463,7 +465,39 @@ public class FFmpegCommand {
 		// * Resolucao Maxima: 720px x 480/576px
 		// * Taxa de quadros maxima: 30fps
 		if (reduzirResolucaoParaCaberNaCentral) {
-			setVideoAddExtraParameters("-vf", "scale=w=700:h=480:force_original_aspect_ratio=decrease");
+			
+			try {
+				
+				// Pega a resolução original do vídeo
+				Point resolucao = getResolucaoVideo(new File(inputFile));
+				LOGGER.info("Resolucao original: " + resolucao.getX() + "x" + resolucao.getY());
+				
+				// Calcula a relação ideal para restringir a resolução ao limite da tela da central
+				double relacaoWidth = resolucao.getX() / 720;
+				double relacaoHeight = resolucao.getY() / 480;
+				double relacaoMaior = Math.max(relacaoWidth, relacaoHeight);
+				LOGGER.info("Relacao de corte: " + relacaoMaior);
+				
+				// Verifica se será necessário redimensionar o vídeo (pode ser que ele já seja menor do que o limite da tela)
+				if (relacaoMaior > 1) {
+					
+					// Calcula a nova largura e altura, conforme a relação ideal calculada.
+					int width = (int) (resolucao.getX() / relacaoMaior);
+					int height = (int) (resolucao.getY() / relacaoMaior);
+					LOGGER.info("Resolucao ajustada: " + width + "x" + height);
+					
+					// Limita a resolução de saída a múltiplos de 16 (parece que dá menos problemas. Seria o tamanho de cada "quadrado" utilizado na compactação do vídeo?)
+					width = (width / 16) * 16;
+					height = (height / 16) * 16;
+					LOGGER.info("Resolucao de saída: " + width + "x" + height);
+					setVideoAddExtraParameters("-vf", "scale=w=" + width + ":h=" + height);
+				}
+			} catch (IOException | NullPointerException | InterruptedException | FFmpegException e) {
+				throw new RuntimeException("Não foi possível analisar resolução do vídeo: " + e.getLocalizedMessage(), e);
+			}
+			//setVideoAddExtraParameters("-vf", "scale=w=700:h=480:force_original_aspect_ratio=decrease");
+			//setVideoAddExtraParameters("-vf", "scale=w=700:h=400");
+			//setVideoAddExtraParameters("-vf", "scale=w=688:h=298");
 		}
 
 		// Codec de audio
@@ -532,5 +566,76 @@ public class FFmpegCommand {
 		// Auxiliar.confereRetornoProcesso(p);
 		
 		return saida;
+	}
+
+	public static Point getResolucaoVideo(File input) throws IOException, InterruptedException, FFmpegException {
+		ArrayList<String> commands = new ArrayList<>();
+		
+		commands.add("/Users/taeta/workspace/felipegiotto_utils/ffmpeg");// TODO: tirar caminho absoluto, mudar para FFmpegPath
+		commands.add("-i");
+		commands.add(input.getAbsolutePath());
+		
+		Process proc = FGProcessUtils.executarComando(commands);
+		try {
+			FGStreamUtils.consomeStream(proc.getInputStream(), "");
+			String out = IOUtils.toString(proc.getErrorStream(), Charset.defaultCharset());
+			Pattern pResolucao = Pattern.compile("(\\d+)x(\\d+)");
+			Matcher m = pResolucao.matcher(out);
+			while (m.find()) {
+				int width = Integer.parseInt(m.group(1));
+				int height = Integer.parseInt(m.group(2));
+				if (width > 0 && height > 0) {
+					Point p = new Point(width, height);
+					return p;
+				}
+			}
+			
+			String erro = "Não foi possível identificar a resolução do vídeo no arquivo " + input + "!";
+			throw new FFmpegException(erro, out);
+			
+		} finally {
+			proc.waitFor();
+		}
+	}
+	
+	public static int getDuracaoSegundosVideo(File input) throws IOException, InterruptedException, FFmpegException {
+		ArrayList<String> commands = new ArrayList<>();
+		
+		commands.add("/Users/taeta/workspace/felipegiotto_utils/ffmpeg");// TODO: tirar caminho absoluto, mudar para FFmpegPath
+		commands.add("-i");
+		commands.add(input.getAbsolutePath());
+		
+		Process proc = FGProcessUtils.executarComando(commands);
+		try {
+			FGStreamUtils.consomeStream(proc.getInputStream(), "");
+			String out = IOUtils.toString(proc.getErrorStream(), Charset.defaultCharset());
+			Pattern pResolucao = Pattern.compile("Duration: (\\d+):(\\d+):(\\d+)\\.");
+			Matcher m = pResolucao.matcher(out);
+			while (m.find()) {
+				int horas = Integer.parseInt(m.group(1));
+				int minutos = Integer.parseInt(m.group(2));
+				int segundos = Integer.parseInt(m.group(3));
+				return (3600 * horas) + (60 * minutos) + segundos; 
+			}
+			
+			String erro = "Não foi possível identificar a duração do vídeo no arquivo " + input + "!";
+			throw new FFmpegException(erro, out);
+		} finally {
+			proc.waitFor();
+		}
+	}
+	
+	public static boolean isArquivoVideo(String filename) {
+
+		filename = filename.toUpperCase();
+
+		return filename.endsWith(".AVI")
+				|| filename.endsWith(".MKV")
+				|| filename.endsWith(".MP4")
+				|| filename.endsWith(".M4V") 
+				|| filename.endsWith(".WMV") 
+				|| filename.endsWith(".FLV") 
+				|| filename.endsWith(".RMVB") 
+				|| filename.endsWith(".MOV");
 	}
 }
