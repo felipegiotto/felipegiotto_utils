@@ -386,7 +386,7 @@ public class FFmpegCommand {
 	 * Este padrão foi estudado conforme testes descritos no arquivo "pesquisa_codec_video.xml",
 	 * de modo que funcione em diversos dispositivos (mac, celular, whatsapp, google drive, etc).
 	 */
-	public void configurarPadraoCamerasFelipe() {
+	public void configurarPadraoCamerasFelipe(boolean presetSlow) {
 		
 		// 15 = Prioridade baixa, para não prejudicar outras atividades do PC
 		setProcessNicePriority(15);
@@ -396,9 +396,11 @@ public class FFmpegCommand {
 		setVideoEncoderCodec("libx264");
 		
 		// Preset (qualidade x velocidade)
-		setVideoAddExtraParameters("-preset", "slow");     // Velocidade (em video de exemplo): 0.130x (padrao)
-//		setVideoAddExtraParameters("-preset", "slower");   // Velocidade (em video de exemplo): 0.080x
-//		setVideoAddExtraParameters("-preset", "veryslow"); // Velocidade (em video de exemplo): 0.051x
+		if (presetSlow) {
+			setVideoAddExtraParameters("-preset", "slow");     // Velocidade (em video de exemplo): 0.130x (padrao)
+//			setVideoAddExtraParameters("-preset", "slower");   // Velocidade (em video de exemplo): 0.080x
+//			setVideoAddExtraParameters("-preset", "veryslow"); // Velocidade (em video de exemplo): 0.051x
+		}
 
 		// Qualidade:
 		// The range of the quantizer scale is 0-51: where 0 is lossless, 23 is default, 

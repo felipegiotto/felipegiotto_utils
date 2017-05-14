@@ -126,9 +126,14 @@ public class FFmpegCommandTest {
 		FFmpegCommand ffmpeg = criarObjetoMinimo();
 		ffmpeg.setInputFile("teste.avi");
 		ffmpeg.setOutputFile("teste_output.avi");
-		ffmpeg.configurarPadraoCamerasFelipe();
+		ffmpeg.configurarPadraoCamerasFelipe(true);
 		assertEquals("nice -n 15 ffmpeg -i teste.avi -c:v libx264 -preset slow -crf 24 -map_metadata 0 -c:a aac -b:a 128k -movflags +faststart teste_output.avi", StringUtils.join(ffmpeg.buildParameters(), " "));
-	}
+
+		ffmpeg = criarObjetoMinimo();
+		ffmpeg.setInputFile("teste.avi");
+		ffmpeg.setOutputFile("teste_output.avi");
+		ffmpeg.configurarPadraoCamerasFelipe(false);
+		assertEquals("nice -n 15 ffmpeg -i teste.avi -c:v libx264 -crf 24 -map_metadata 0 -c:a aac -b:a 128k -movflags +faststart teste_output.avi", StringUtils.join(ffmpeg.buildParameters(), " "));}
 
 	@Test
 	public void configurarPadraoCentralMultimidia() {
@@ -136,7 +141,7 @@ public class FFmpegCommandTest {
 		ffmpeg.setInputFile("src/test/resources/video_1280x544.mov");
 		ffmpeg.setOutputFile("teste_output.avi");
 		ffmpeg.configurarPadraoCentralMultimidia(true);
-		assertEquals("nice -n 15 ffmpeg -i src/test/resources/video_1280x544.mov -c:v libxvid -preset slow -qscale:v 10 -vf scale=w=720:h=304 -c:a libmp3lame -qscale:a 5 teste_output.avi", StringUtils.join(ffmpeg.buildParameters(), " "));
+		assertEquals("nice -n 15 ffmpeg -i src/test/resources/video_1280x544.mov -c:v libxvid -qscale:v 10 -vf scale=w=720:h=304 -c:a libmp3lame -qscale:a 5 teste_output.avi", StringUtils.join(ffmpeg.buildParameters(), " "));
 	}
 
 	@Test

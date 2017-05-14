@@ -17,8 +17,8 @@ public class FGInterativoUtils {
 	private static final Logger LOGGER = LogManager.getLogger(FGInterativoUtils.class);
 	
 	/**
-	 * Faz uma "pergunta" para o usuário (stdout) e aguarda sua resposta (stdin)
-	 * @param pergunta
+	 * Aguarda uma resposta do usuário (seguida de enter) na "stdin"
+	 * 
 	 * @return
 	 */
 	public static String aguardarRespostaUsuario() {
