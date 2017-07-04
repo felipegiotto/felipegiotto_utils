@@ -69,4 +69,34 @@ public class FGInterativoUtils {
 		return respostaInt;
 	}
 
+	/**
+	 * Faz uma pergunta para o usuário, mostrando uma série de opções. 
+	 * Em seguida, pede para que o usuário informe o número da opção selecionada.
+	 * 
+	 * @param pergunta
+	 * @param opcoes
+	 * @return
+	 */
+	public static boolean perguntarSimOuNaoParaUsuario(String pergunta) {
+		
+		// Faz um loop até que o usuário responda SIM ou NAO
+		while(true) {
+			
+			// Mostra a pergunta para o usuário
+			System.out.println("");
+			System.out.println(pergunta + " (S/N)");
+	
+			// Identifica o item selecionado pelo usuário.
+			String resposta = aguardarRespostaUsuario();
+			if (resposta != null) {
+				resposta = resposta.toUpperCase();
+				if ("S".equals(resposta)) {
+					return true;
+				} else if ("N".equals(resposta)) {
+					return false;
+				}
+			}
+			System.out.println("Resposta inválida! Responda com 'S' ou 'N'.");
+		}
+	}
 }

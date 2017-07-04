@@ -107,6 +107,10 @@ public class FFmpegCommandTest {
 		ffmpeg.setAudioEncoderCodec("aac");
 		ffmpeg.setAudioAddExtraParameters("-b:a", "128k");
 		assertEquals("ffmpeg -i entrada.avi -c:a aac -b:a 128k saida.avi", StringUtils.join(ffmpeg.buildParameters(), " "));
+		
+		// Se, agora, mudar o áudio para "copy", também deve zerar as informações extras de áudio
+		ffmpeg.setAudio(TipoAudioVideo.COPY);
+		assertEquals("ffmpeg -i entrada.avi -c:a copy saida.avi", StringUtils.join(ffmpeg.buildParameters(), " "));
 	}
 	
 	@Test
@@ -127,13 +131,13 @@ public class FFmpegCommandTest {
 		ffmpeg.setInputFile("teste.avi");
 		ffmpeg.setOutputFile("teste_output.avi");
 		ffmpeg.configurarPadraoCamerasFelipe(true);
-		assertEquals("nice -n 15 ffmpeg -i teste.avi -c:v libx264 -preset slow -crf 24 -map_metadata 0 -c:a aac -b:a 128k -movflags +faststart teste_output.avi", StringUtils.join(ffmpeg.buildParameters(), " "));
+		assertEquals("nice -n 15 ffmpeg -i teste.avi -c:v libx265 -preset slow -crf 24 -map_metadata 0 -c:a aac -b:a 128k -movflags +faststart teste_output.avi", StringUtils.join(ffmpeg.buildParameters(), " "));
 
 		ffmpeg = criarObjetoMinimo();
 		ffmpeg.setInputFile("teste.avi");
 		ffmpeg.setOutputFile("teste_output.avi");
 		ffmpeg.configurarPadraoCamerasFelipe(false);
-		assertEquals("nice -n 15 ffmpeg -i teste.avi -c:v libx264 -crf 24 -map_metadata 0 -c:a aac -b:a 128k -movflags +faststart teste_output.avi", StringUtils.join(ffmpeg.buildParameters(), " "));}
+		assertEquals("nice -n 15 ffmpeg -i teste.avi -c:v libx265 -crf 24 -map_metadata 0 -c:a aac -b:a 128k -movflags +faststart teste_output.avi", StringUtils.join(ffmpeg.buildParameters(), " "));}
 
 	@Test
 	public void configurarPadraoCentralMultimidia() {

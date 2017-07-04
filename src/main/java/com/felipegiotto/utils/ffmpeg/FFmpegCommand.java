@@ -138,16 +138,16 @@ public class FFmpegCommand {
 			commands.add("-c:a");
 			commands.add(audioEncoderCodec);
 			
+			// Parametros extras para processar o áudio (somente se estiver utilizando ENCODE)
+			if (audioExtraParameters != null) {
+				commands.addAll(audioExtraParameters);
+			}
+			
 		} else if (TipoAudioVideo.COPY.equals(audio)) {
 			commands.add("-c:a");
 			commands.add("copy");
 //		} else {
 //			throw new NotImplementedException("Ainda não foi implementado: audio=" + audio);
-		}
-		
-		// Parametros extras para processar o áudio
-		if (audioExtraParameters != null) {
-			commands.addAll(audioExtraParameters);
 		}
 		
 		// Mover metadados do áudio para o início
@@ -391,7 +391,8 @@ public class FFmpegCommand {
 		// 15 = Prioridade baixa, para não prejudicar outras atividades do PC
 		setProcessNicePriority(15);
 		
-		// Fonte: https://trac.ffmpeg.org/wiki/Encode/H.264
+		// Fonte: https://trac.ffmpeg.org/wiki/Encode/H.265
+		// Fonte (OLD): https://trac.ffmpeg.org/wiki/Encode/H.264
 		setVideo(TipoAudioVideo.ENCODE);
 		setVideoEncoderCodec("libx264");
 		
@@ -451,7 +452,6 @@ public class FFmpegCommand {
 		// 15 = Prioridade baixa, para não prejudicar outras atividades do PC
 		setProcessNicePriority(15);
 		
-		// Fonte: https://trac.ffmpeg.org/wiki/Encode/H.264
 		setVideo(TipoAudioVideo.ENCODE);
 		setVideoEncoderCodec("libxvid");
 

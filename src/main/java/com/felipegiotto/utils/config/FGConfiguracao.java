@@ -19,72 +19,73 @@ import com.felipegiotto.utils.datasources.FGConnectionFactory;
  * 
  * @author felipegiotto@gmail.com
  */
+//@Table("configuracoes")
 public class FGConfiguracao {
 
 	private String chave;
 	private String valor;
 	
-	public static List<FGConfiguracao> getConfiguracoes() throws SQLException {
-		try (Connection connection = FGConnectionFactory.getDefaultDataSource().getConnection()) {
-			List<FGConfiguracao> lista = new ArrayList<>();
-			
-			try (ResultSet rs = connection.createStatement().executeQuery("SELECT chave, valor FROM configuracoes ORDER BY chave")) {
-				while (rs.next()) {
-					FGConfiguracao config = new FGConfiguracao();
-					config.carregarDoResultSet(rs);
-					lista.add(config);
-				}
-			}
-			
-			return lista;
-		}
-	}
+//	public static List<FGConfiguracao> getConfiguracoes() throws SQLException {
+//		try (Connection connection = FGConnectionFactory.getDefaultDataSource().getConnection()) {
+//			List<FGConfiguracao> lista = new ArrayList<>();
+//			
+//			try (ResultSet rs = connection.createStatement().executeQuery("SELECT chave, valor FROM configuracoes ORDER BY chave")) {
+//				while (rs.next()) {
+//					FGConfiguracao config = new FGConfiguracao();
+//					config.carregarDoResultSet(rs);
+//					lista.add(config);
+//				}
+//			}
+//			
+//			return lista;
+//		}
+//	}
 	
-	public static FGConfiguracao get(String chave) throws SQLException {
-		try (Connection connection = FGConnectionFactory.getDefaultDataSource().getConnection()) {
-			try (PreparedStatement ps = connection.prepareStatement("SELECT chave, valor FROM configuracoes WHERE chave = ?")) {
-				ps.setString(1, chave);
-				try (ResultSet rs = ps.executeQuery()) {
-					if (rs.next()) {
-						FGConfiguracao config = new FGConfiguracao();
-						config.carregarDoResultSet(rs);
-						return config;
-					}
-				}
-			}
-			
-			return null;
-		}
-	}	
+//	public static FGConfiguracao get(String chave) throws SQLException {
+//		try (Connection connection = FGConnectionFactory.getDefaultDataSource().getConnection()) {
+//			try (PreparedStatement ps = connection.prepareStatement("SELECT chave, valor FROM configuracoes WHERE chave = ?")) {
+//				ps.setString(1, chave);
+//				try (ResultSet rs = ps.executeQuery()) {
+//					if (rs.next()) {
+//						FGConfiguracao config = new FGConfiguracao();
+//						config.carregarDoResultSet(rs);
+//						return config;
+//					}
+//				}
+//			}
+//			
+//			return null;
+//		}
+//	}
 	
-	public static void set(String chave, String valor) throws SQLException {
-		try (Connection connection = FGConnectionFactory.getDefaultDataSource().getConnection()) {
-			
-			if (valor == null) {
-				try (PreparedStatement psDelete = connection.prepareStatement("DELETE FROM configuracoes WHERE chave = ?")) {
-					psDelete.setString(1, chave);
-					psDelete.executeUpdate();
-				}
-			} else {
-				try (PreparedStatement psUpdate = connection.prepareStatement("UPDATE configuracoes SET valor = ? WHERE chave = ?")) {
-					psUpdate.setString(1, valor);
-					psUpdate.setString(2, chave);
-					if (psUpdate.executeUpdate() == 0) {
-						try (PreparedStatement psInsert = connection.prepareStatement("INSERT INTO configuracoes (chave, valor) VALUES (?, ?)")) {
-							psInsert.setString(1, chave);
-							psInsert.setString(2, valor);
-							psInsert.executeUpdate();
-						}
-					}
-				}
-			}
-		}
-	}
+//	public static void set(String chave, String valor) throws SQLException {
+//		try (Connection connection = FGConnectionFactory.getDefaultDataSource().getConnection()) {
+//			
+//			if (valor == null) {
+//				try (PreparedStatement psDelete = connection.prepareStatement("DELETE FROM configuracoes WHERE chave = ?")) {
+//					psDelete.setString(1, chave);
+//					psDelete.executeUpdate();
+//				}
+//			} else {
+//				try (PreparedStatement psUpdate = connection.prepareStatement("UPDATE configuracoes SET valor = ? WHERE chave = ?")) {
+//					psUpdate.setString(1, valor);
+//					psUpdate.setString(2, chave);
+//					if (psUpdate.executeUpdate() == 0) {
+//						try (PreparedStatement psInsert = connection.prepareStatement("INSERT INTO configuracoes (chave, valor) VALUES (?, ?)")) {
+//							psInsert.setString(1, chave);
+//							psInsert.setString(2, valor);
+//							psInsert.executeUpdate();
+//						}
+//					}
+//				}
+//			}
+//		}
+//	}
 	
-	private void carregarDoResultSet(ResultSet rs) throws SQLException {
-		chave = rs.getString("chave");
-		valor = rs.getString("valor");
-	}
+//	private void carregarDoResultSet(ResultSet rs) throws SQLException {
+//		chave = rs.getString("chave");
+//		valor = rs.getString("valor");
+//	}
 	
 	public String getChave() {
 		return chave;
