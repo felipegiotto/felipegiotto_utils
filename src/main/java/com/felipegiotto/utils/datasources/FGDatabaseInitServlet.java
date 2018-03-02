@@ -8,7 +8,8 @@ import javax.servlet.http.HttpServlet;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.flywaydb.core.Flyway;
+
+import com.felipegiotto.utils.FGDatabaseUtils;
 
 /**
  * Servlet que pode ser estendido, em uma aplicação Web, para configurar automaticamente 
@@ -57,14 +58,7 @@ public class FGDatabaseInitServlet extends HttpServlet {
 		
 		LOGGER.debug("Iniciando migração do banco de dados...");
 		
-		// Create the Flyway instance
-        Flyway flyway = new Flyway();
-
-        // Point it to the database
-        flyway.setDataSource(FGConnectionFactory.getDefaultDataSource());
-
-        // Start the migration
-        flyway.migrate();
+		FGDatabaseUtils.migrateDatabase();
         
 		LOGGER.debug("Migração finalizada!");
 	}

@@ -131,13 +131,13 @@ public class FFmpegCommandTest {
 		ffmpeg.setInputFile("teste.avi");
 		ffmpeg.setOutputFile("teste_output.avi");
 		ffmpeg.configurarPadraoCamerasFelipe(true);
-		assertEquals("nice -n 15 ffmpeg -i teste.avi -c:v libx265 -preset slow -crf 24 -map_metadata 0 -c:a aac -b:a 128k -movflags +faststart teste_output.avi", StringUtils.join(ffmpeg.buildParameters(), " "));
+		assertEquals("nice -n 15 ffmpeg -i teste.avi -c:v libx264 -preset slow -crf 24 -map_metadata 0 -c:a aac -b:a 128k -movflags +faststart teste_output.avi", StringUtils.join(ffmpeg.buildParameters(), " "));
 
 		ffmpeg = criarObjetoMinimo();
 		ffmpeg.setInputFile("teste.avi");
 		ffmpeg.setOutputFile("teste_output.avi");
 		ffmpeg.configurarPadraoCamerasFelipe(false);
-		assertEquals("nice -n 15 ffmpeg -i teste.avi -c:v libx265 -crf 24 -map_metadata 0 -c:a aac -b:a 128k -movflags +faststart teste_output.avi", StringUtils.join(ffmpeg.buildParameters(), " "));}
+		assertEquals("nice -n 15 ffmpeg -i teste.avi -c:v libx264 -crf 24 -map_metadata 0 -c:a aac -b:a 128k -movflags +faststart teste_output.avi", StringUtils.join(ffmpeg.buildParameters(), " "));}
 
 	@Test
 	public void configurarPadraoCentralMultimidia() {

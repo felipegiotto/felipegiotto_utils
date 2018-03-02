@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
+import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -19,12 +20,14 @@ public class FGStreamUtils {
 	
 	/**
 	 * Consome um stream de forma assíncrona, logando (ou não) cada linha que é lida
+	 *
+	 * Se prefixo == null || level == null, não escreve nada no log
 	 * 
 	 * @param inputStream
 	 * @param prefixo : prefixo que será gravado no log antes de cada linha lida do Stream.
-	 * Se prefixo == null, não escreve nada no log
+	 * @param level : nível de log utilizado para escrever no log
 	 */
-	public static void consomeStream(final InputStream inputStream, final String prefixo) {
+	public static void consomeStream(final InputStream inputStream, final String prefixo, final Level level) {
 		new Thread(new Runnable() {
 
 			@Override
@@ -33,14 +36,20 @@ public class FGStreamUtils {
 				try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
 				    String line;
 				    while ((line = reader.readLine()) != null) {
-				    	if (prefixo != null) {
-				    		LOGGER.debug(prefixo + " " + line);
+				    	if (prefixo != null && level != null) {
+				    		LOGGER.log(level, prefixo + " " + line);
 				    	}
 				    }
 				} catch (IOException ex) {
-					LOGGER.info("Erro ignorado ao ler Stream: " + ex.getLocalizedMessage(), ex);
+					if (level != null) {
+						LOGGER.log(level, "Erro ignorado ao ler Stream: " + ex.getLocalizedMessage(), ex);
+					}
 				}
 			}
 		}).start();
+	}
+	
+	public static void consomeStream(final InputStream inputStream, final String prefixo) {
+		consomeStream(inputStream, prefixo, Level.DEBUG);
 	}
 }

@@ -12,7 +12,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
+import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -47,8 +49,8 @@ public class FFmpegCommand {
 		Process p = run();
 		
 		// Mostra o resultado do comando
-		FGStreamUtils.consomeStream(p.getInputStream(), escreverRetornoLogs ? "STDOUT" : null);
-		FGStreamUtils.consomeStream(p.getErrorStream(), escreverRetornoLogs ? "STDERR" : null);
+		FGStreamUtils.consomeStream(p.getInputStream(), escreverRetornoLogs ? "STDOUT" : null, Level.INFO);
+		FGStreamUtils.consomeStream(p.getErrorStream(), escreverRetornoLogs ? "STDERR" : null, Level.INFO);
 
 		// Aguarda o termino e verifica se ocorreu erro
 		p.waitFor();
@@ -116,6 +118,12 @@ public class FFmpegCommand {
 		// Parametros extras para processar o video
 		if (videoExtraParameters != null) {
 			commands.addAll(videoExtraParameters);
+		}
+		
+		// Adiciona os filtros (ex: scale), separados por vírgula
+		if (videoFilters != null) {
+			commands.add("-vf");
+			commands.add(StringUtils.join(videoFilters, ","));
 		}
 		
 		// Rotação do vídeo
@@ -302,6 +310,43 @@ public class FFmpegCommand {
 	}
 	
 	/**
+	 * Define o ganho de luminosidade ao compactar o vídeo.
+	 * A luminosidade padrão é "1" (ou manter como NULL para que essa
+	 * informação nem seja passada ao FFMPEG). 
+	 * 
+	 * Valores menores (ex: 0.8) deixam o vídeo mais escuro. 
+	 * Valores maiores (ex: 1.5) deixam o vídeo mais claro. 
+	 * 
+	 * Fonte: https://forum.videohelp.com/threads/367595-%5BSOLVED%5D-%5Bffmpeg%5D-Brightening-a-dark-video
+	 * 
+	 * @param ganhoLuminosidade
+	 */
+	public void setGanhoLuminosidade(Double ganhoLuminosidade) {
+		if (ganhoLuminosidade != null) {
+			addVideoFilter("lutyuv=y=val*" + ganhoLuminosidade);
+		}
+	}
+	
+	List<String> videoFilters;
+	
+	/**
+	 * Adiciona um filtro de vídeo a ser passado ao ffmpeg.
+	 * 
+	 * Filtros (-vf) são úteis para ajustar o tamanho (scale), a luminosidade (lutyuv), etc.
+	 * 
+	 * Vários filtros podem ser passados ao ffmpeg, separados por vírgula
+	 * (fonte: https://stackoverflow.com/questions/6195872/applying-multiple-filters-at-once-with-ffmpeg)
+	 *
+	 * @param videoFilter
+	 */
+	public void addVideoFilter(String videoFilter) {
+		if (videoFilters == null) {
+			videoFilters = new ArrayList<>();
+		}
+		videoFilters.add(videoFilter);
+	}
+
+	/**
 	 * Define o codec de processamento do áudio, quando for 
 	 * utilizado setAudio(TipoAudioVideo.ENCODE)
 	 * 
@@ -472,13 +517,13 @@ public class FFmpegCommand {
 				
 				// Pega a resolução original do vídeo
 				Point resolucao = getResolucaoVideo(new File(inputFile));
-				LOGGER.info("Resolucao original: " + resolucao.getX() + "x" + resolucao.getY());
+//				LOGGER.info("Resolucao original: " + resolucao.getX() + "x" + resolucao.getY());
 				
 				// Calcula a relação ideal para restringir a resolução ao limite da tela da central
 				double relacaoWidth = resolucao.getX() / 720;
 				double relacaoHeight = resolucao.getY() / 480;
 				double relacaoMaior = Math.max(relacaoWidth, relacaoHeight);
-				LOGGER.info("Relacao de corte: " + relacaoMaior);
+//				LOGGER.info("Relacao de corte: " + relacaoMaior);
 				
 				// Verifica se será necessário redimensionar o vídeo (pode ser que ele já seja menor do que o limite da tela)
 				if (relacaoMaior > 1) {
@@ -486,13 +531,14 @@ public class FFmpegCommand {
 					// Calcula a nova largura e altura, conforme a relação ideal calculada.
 					int width = (int) (resolucao.getX() / relacaoMaior);
 					int height = (int) (resolucao.getY() / relacaoMaior);
-					LOGGER.info("Resolucao ajustada: " + width + "x" + height);
+//					LOGGER.info("Resolucao ajustada: " + width + "x" + height);
 					
 					// Limita a resolução de saída a múltiplos de 16 (parece que dá menos problemas. Seria o tamanho de cada "quadrado" utilizado na compactação do vídeo?)
 					width = (width / 16) * 16;
 					height = (height / 16) * 16;
-					LOGGER.info("Resolucao de saída: " + width + "x" + height);
-					setVideoAddExtraParameters("-vf", "scale=w=" + width + ":h=" + height);
+					//LOGGER.info("Resolucao de saída: " + width + "x" + height);
+					LOGGER.info("Resolucoes: entrada=" + resolucao.getX() + "x" + resolucao.getY() + ", saída=" + width + "x" + height);
+					addVideoFilter("scale=w=" + width + ":h=" + height);
 				}
 			} catch (IOException | NullPointerException | InterruptedException | FFmpegException e) {
 				throw new RuntimeException("Não foi possível analisar resolução do vídeo: " + e.getLocalizedMessage(), e);
@@ -639,5 +685,14 @@ public class FFmpegCommand {
 				|| filename.endsWith(".FLV") 
 				|| filename.endsWith(".RMVB") 
 				|| filename.endsWith(".MOV");
+	}
+	
+	public static void main(String[] args) throws Exception {
+		setFFmpegPath("/Users/taeta/workspace/backup_fotos_e_macbook_ultimate/ffmpeg/ffmpeg-90148-g0419623cdc");
+		FFmpegCommand f = new FFmpegCommand();
+		f.setInputFile(new File("/Users/taeta/Desktop/Lixo/IMG_5706_compact_.mov"));
+		f.setVideo(TipoAudioVideo.COPY);
+		f.setOutputFile(new File("/Users/taeta/Desktop/Lixo/IMG_5706_compact_teste.MOV"));
+		f.runAndWait(true);
 	}
 }
