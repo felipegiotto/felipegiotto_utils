@@ -661,7 +661,7 @@ public class FFmpegCommand {
 	public static Point getResolucaoVideo(File input) throws IOException, InterruptedException, FFmpegException {
 		ArrayList<String> commands = new ArrayList<>();
 		
-		commands.add("/Users/taeta/workspace/felipegiotto_utils/ffmpeg");// TODO: tirar caminho absoluto, mudar para FFmpegPath
+		commands.add(FFmpegPath);
 		commands.add("-i");
 		commands.add(input.getAbsolutePath());
 		
@@ -691,7 +691,7 @@ public class FFmpegCommand {
 	public static int getDuracaoSegundosVideo(File input) throws IOException, InterruptedException, FFmpegException {
 		ArrayList<String> commands = new ArrayList<>();
 		
-		commands.add("/Users/taeta/workspace/felipegiotto_utils/ffmpeg");// TODO: tirar caminho absoluto, mudar para FFmpegPath
+		commands.add(FFmpegPath);// TODO: tirar caminho absoluto, mudar para FFmpegPath
 		commands.add("-i");
 		commands.add(input.getAbsolutePath());
 		
