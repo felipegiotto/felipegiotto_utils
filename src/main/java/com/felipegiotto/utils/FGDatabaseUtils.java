@@ -3,6 +3,7 @@ package com.felipegiotto.utils;
 import java.lang.reflect.InvocationTargetException;
 
 import java.lang.reflect.Method;
+import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -10,6 +11,10 @@ import java.sql.Types;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.flywaydb.core.Flyway;
+
+import com.felipegiotto.utils.datasources.FGConnectionFactory;
+import com.felipegiotto.utils.exception.RecordNotFoundException;
 /**
  * Métodos auxiliares referentes a bancos de dados
  * 
@@ -127,5 +132,80 @@ public class FGDatabaseUtils {
 		} else {
 			ps.setBoolean(parameterIndex, value);
 		}
-	}	
+	}
+	
+	/**
+	 * Executa uma consulta SQL e retorna o primeiro campo do 
+	 * primeiro registro do ResultSet, no formato Integer.
+	 * 
+	 * @param conn
+	 * @param sql
+	 * @return
+	 * @throws RecordNotFoundException
+	 * @throws SQLException
+	 */
+	public static Integer executeQueryInt(Connection conn, String sql) throws RecordNotFoundException, SQLException {
+		try (ResultSet rs = conn.createStatement().executeQuery(sql)) {
+			if (rs.next()) {
+				int value = rs.getInt(1);
+				if (rs.wasNull()) {
+					return null;
+				} else {
+					return value;
+				}
+			} else {
+				throw new RecordNotFoundException("Record not found");
+			}
+		}
+	}
+	
+	/**
+	 * Executa uma consulta SQL e retorna o primeiro campo do 
+	 * primeiro registro do ResultSet, no formato Integer.
+	 * 
+	 * Pega uma conexão do "default data source" e fecha depois
+	 * da consulta.
+	 * 
+	 * @param sql
+	 * @return
+	 * @throws RecordNotFoundException
+	 * @throws SQLException
+	 */
+	public static Integer executeQueryInt(String sql) throws RecordNotFoundException, SQLException {
+		try (Connection conn = FGConnectionFactory.getDefaultDataSource().getConnection()) {
+			return executeQueryInt(conn, sql);
+		}
+	}
+	
+	/**
+	 * Executa uma operação DML, pegando uma conexão do 
+	 * "default data source". Ao final, fecha a conexão.
+	 * 
+	 * @param sql
+	 * @return
+	 * @throws RecordNotFoundException
+	 * @throws SQLException
+	 */
+	public static Integer executeUpdate(String sql) throws SQLException {
+		try (Connection conn = FGConnectionFactory.getDefaultDataSource().getConnection()) {
+			return conn.createStatement().executeUpdate(sql);
+		}
+	}
+	
+	public static Integer executeUpdate(Connection conn, String sql) throws SQLException {
+		return conn.createStatement().executeUpdate(sql);
+	}
+	
+	public static void migrateDatabase() throws SQLException {
+		
+		// Create the Flyway instance
+        Flyway flyway = new Flyway();
+
+        // Point it to the database
+        flyway.setDataSource(FGConnectionFactory.getDefaultDataSource());
+
+        // Start the migration
+        flyway.migrate();
+
+	}
 }
