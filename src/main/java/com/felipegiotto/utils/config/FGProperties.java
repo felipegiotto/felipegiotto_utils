@@ -1,16 +1,24 @@
 package com.felipegiotto.utils.config;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Properties;
 
 import org.apache.commons.lang3.StringUtils;
 
-import com.felipegiotto.utils.FGFileUtils;
 import com.felipegiotto.utils.exception.NotFoundException;
 
 /**
  * Classe para ler e gravar dados em arquivos ".properties"
+ * 
+ * TODO: Testes unitarios
  * 
  * @author felipegiotto@gmail.com
  */
@@ -22,11 +30,84 @@ public class FGProperties {
 	
 	public FGProperties(Path pathArquivo, boolean obrigatorio) throws IOException {
 		this.pathArquivo = pathArquivo;
-		this.properties = FGFileUtils.carregarArquivoProperties(pathArquivo, obrigatorio);
+		this.properties = carregarArquivoProperties(pathArquivo, obrigatorio);
+	}
+	
+	/**
+	 * Carrega um objeto Properties de um arquivo
+	 * 
+	 * TODO: Criar uma classe (ex: FGFileProperties), que já receba um arquivo na sua inicialização e, a cada chamada ao método "saveToFile", reescreve. Permitir salvar somente se alguma propriedade foi modificada. Criar gets e sets para diversos tipos de dados (ex: int, float, double), permitindo gravar e ler NULL (nesse caso, grava string vazia no arquivo e permite a carga posterior)
+	 * TODO: Criar FGDateUtils, com formatadores "padrão" para diversos formatos conhecidos, sempre utilizando SafeSimpleDateFormat (SQL Date, SQL Timestamp, D/M/Y, D/M/Y/H/M/S, H/M/S)
+	 * @param arquivo : arquivo de entrada, com os dados que serão populados no objeto
+	 * @param obrigatorio : se "true" e se o arquivo de entrada não existir, lança uma exceção
+	 * @return
+	 * @throws IOException
+	 */
+	public static Properties carregarArquivoProperties(File arquivo, boolean obrigatorio) throws IOException {
+		Properties props = new Properties();
+		if (arquivo.exists() && arquivo.isFile()) {
+			try (FileInputStream fis = new FileInputStream(arquivo)) {
+				props.load(fis);
+			}
+		} else if (obrigatorio) {
+			throw new FileNotFoundException("Arquivo não existe: " + arquivo);
+		}
+		return props;
+	}
+	
+	/**
+	 * Carrega um objeto Properties de um arquivo
+	 * 
+	 * TODO: Criar uma classe (ex: FGFileProperties), que já receba um arquivo na sua inicialização e, a cada chamada ao método "saveToFile", reescreve.
+	 * TODO: Criar FGDateUtils, com formatadores "padrão" para diversos formatos conhecidos, sempre utilizando SafeSimpleDateFormat (SQL Date, SQL Timestamp, D/M/Y, D/M/Y/H/M/S, H/M/S)
+	 *   
+	 * @param arquivo : arquivo de entrada, com os dados que serão populados no objeto
+	 * @param obrigatorio : se "true" e se o arquivo de entrada não existir, lança uma exceção
+	 * @return
+	 * @throws IOException
+	 */
+	public static Properties carregarArquivoProperties(Path arquivo, boolean obrigatorio) throws IOException {
+		Properties props = new Properties();
+		if (Files.isRegularFile(arquivo)) {
+			try (InputStream fis = Files.newInputStream(arquivo)) {
+				props.load(fis);
+			}
+		} else if (obrigatorio) {
+			throw new FileNotFoundException("Arquivo não existe: " + arquivo);
+		}
+		return props;
+	}
+	
+	/**
+	 * Grava um objeto Properties em um arquivo.
+	 * @param properties
+	 * @param arquivoSaida
+	 * @param comentario : texto inserido na primeira linha do arquivo
+	 * @throws IOException
+	 */
+	public static void salvarArquivoProperties(Properties properties, File arquivoSaida, String comentario)
+			throws IOException {
+		try (FileOutputStream fos = new FileOutputStream(arquivoSaida)) {
+			properties.store(fos, comentario);
+		}
+	}
+
+	/**
+	 * Grava um objeto Properties em um arquivo.
+	 * @param properties
+	 * @param arquivoSaida
+	 * @param comentario : texto inserido na primeira linha do arquivo
+	 * @throws IOException
+	 */
+	public static void salvarArquivoProperties(Properties properties, Path arquivoSaida, String comentario)
+			throws IOException {
+		try (OutputStream fos = Files.newOutputStream(arquivoSaida)) {
+			properties.store(fos, comentario);
+		}
 	}
 	
 	public void save(String comentario) throws IOException {
-		FGFileUtils.salvarArquivoProperties(properties, pathArquivo, comentario);
+		salvarArquivoProperties(properties, pathArquivo, comentario);
 	}
 	
 	/**
@@ -69,7 +150,7 @@ public class FGProperties {
 	 */
 	public String getString(String key) {
 		String value = properties.getProperty(key);
-		return isEmptyOrNullValue(value) ? null : value;
+		return NULL_VALUE.equals(value) ? null : value;
 	}
 	
 	/**

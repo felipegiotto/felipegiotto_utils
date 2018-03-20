@@ -14,7 +14,7 @@ import org.apache.logging.log4j.Logger;
 import org.flywaydb.core.Flyway;
 
 import com.felipegiotto.utils.datasources.FGConnectionFactory;
-import com.felipegiotto.utils.exception.RecordNotFoundException;
+import com.felipegiotto.utils.exception.NotFoundException;
 /**
  * Métodos auxiliares referentes a bancos de dados
  * 
@@ -141,10 +141,10 @@ public class FGDatabaseUtils {
 	 * @param conn
 	 * @param sql
 	 * @return
-	 * @throws RecordNotFoundException
+	 * @throws NotFoundException
 	 * @throws SQLException
 	 */
-	public static Integer executeQueryInt(Connection conn, String sql) throws RecordNotFoundException, SQLException {
+	public static Integer executeQueryInt(Connection conn, String sql) throws NotFoundException, SQLException {
 		try (ResultSet rs = conn.createStatement().executeQuery(sql)) {
 			if (rs.next()) {
 				int value = rs.getInt(1);
@@ -154,7 +154,7 @@ public class FGDatabaseUtils {
 					return value;
 				}
 			} else {
-				throw new RecordNotFoundException("Record not found");
+				throw new NotFoundException("Record not found");
 			}
 		}
 	}
@@ -168,10 +168,10 @@ public class FGDatabaseUtils {
 	 * 
 	 * @param sql
 	 * @return
-	 * @throws RecordNotFoundException
+	 * @throws NotFoundException
 	 * @throws SQLException
 	 */
-	public static Integer executeQueryInt(String sql) throws RecordNotFoundException, SQLException {
+	public static Integer executeQueryInt(String sql) throws NotFoundException, SQLException {
 		try (Connection conn = FGConnectionFactory.getDefaultDataSource().getConnection()) {
 			return executeQueryInt(conn, sql);
 		}
@@ -183,7 +183,7 @@ public class FGDatabaseUtils {
 	 * 
 	 * @param sql
 	 * @return
-	 * @throws RecordNotFoundException
+	 * @throws NotFoundException
 	 * @throws SQLException
 	 */
 	public static Integer executeUpdate(String sql) throws SQLException {
