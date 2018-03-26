@@ -20,6 +20,8 @@ import com.felipegiotto.utils.exception.NotFoundException;
  * 
  * TODO: Testes unitarios
  * 
+ * TODO: Implementar keySet, propertyNames (ver qual funciona de acordo com o esperado)
+ * 
  * @author felipegiotto@gmail.com
  */
 public class FGProperties {
@@ -36,7 +38,6 @@ public class FGProperties {
 	/**
 	 * Carrega um objeto Properties de um arquivo
 	 * 
-	 * TODO: Criar uma classe (ex: FGFileProperties), que já receba um arquivo na sua inicialização e, a cada chamada ao método "saveToFile", reescreve. Permitir salvar somente se alguma propriedade foi modificada. Criar gets e sets para diversos tipos de dados (ex: int, float, double), permitindo gravar e ler NULL (nesse caso, grava string vazia no arquivo e permite a carga posterior)
 	 * TODO: Criar FGDateUtils, com formatadores "padrão" para diversos formatos conhecidos, sempre utilizando SafeSimpleDateFormat (SQL Date, SQL Timestamp, D/M/Y, D/M/Y/H/M/S, H/M/S)
 	 * @param arquivo : arquivo de entrada, com os dados que serão populados no objeto
 	 * @param obrigatorio : se "true" e se o arquivo de entrada não existir, lança uma exceção
@@ -58,9 +59,6 @@ public class FGProperties {
 	/**
 	 * Carrega um objeto Properties de um arquivo
 	 * 
-	 * TODO: Criar uma classe (ex: FGFileProperties), que já receba um arquivo na sua inicialização e, a cada chamada ao método "saveToFile", reescreve.
-	 * TODO: Criar FGDateUtils, com formatadores "padrão" para diversos formatos conhecidos, sempre utilizando SafeSimpleDateFormat (SQL Date, SQL Timestamp, D/M/Y, D/M/Y/H/M/S, H/M/S)
-	 *   
 	 * @param arquivo : arquivo de entrada, com os dados que serão populados no objeto
 	 * @param obrigatorio : se "true" e se o arquivo de entrada não existir, lança uma exceção
 	 * @return
