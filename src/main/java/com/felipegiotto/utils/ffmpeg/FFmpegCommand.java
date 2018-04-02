@@ -66,7 +66,7 @@ public class FFmpegCommand {
 		return pb.start();
 	}
 
-	public ArrayList<String> buildParameters() {
+	public ArrayList<String> buildParameters() throws IOException {
 		ArrayList<String> commands = new ArrayList<>();
 		
 		// Prioridade (valor 'nice')
@@ -129,22 +129,53 @@ public class FFmpegCommand {
 			addVideoFilter("scale=-1:" + videoHeight);
 		}
 		
-		// Adiciona os filtros (ex: scale), separados por vírgula
-		if (videoFilters != null) {
-			commands.add("-vf");
-			commands.add(StringUtils.join(videoFilters, ","));
-		}
-		
-		// Rotação do vídeo
-		if (videoRotation != null) {
-			commands.add("-metadata:s:v:0");
-			commands.add("rotate=" + videoRotation);
-		}
-		
 		// Copiar metadados para destino
 		if (videoCopiarMetadados) {
 			commands.add("-map_metadata");
 			commands.add("0");
+		}
+		
+		// Rotação do vídeo
+		if (videoRotation != null) {
+			
+			// Se vídeo será somente copiado, adiciona um metadado de rotação.
+			// Se vídeo será recodificado, precisa fazer um "transpose"
+			if (TipoAudioVideo.COPY.equals(video)) {
+				commands.add("-metadata:s:v:0");
+				commands.add("rotate=" + videoRotation);
+				
+			} else {
+				
+				/*
+				 * For the transpose parameter you can pass:
+				 * 0 = 90CounterCLockwise and Vertical Flip (default)
+				 * 1 = 90Clockwise
+				 * 2 = 90CounterClockwise
+				 * 3 = 90Clockwise and Vertical Flip
+				 * Use -vf "transpose=2,transpose=2" for 180 degrees.
+				 * 
+				 * Fonte: https://stackoverflow.com/questions/3937387/rotating-videos-with-ffmpeg
+				 */
+				if (videoRotation.equals(90)) {
+					addVideoFilter("transpose=2");
+					
+				} else if (videoRotation.equals(180)) {
+					addVideoFilter("transpose=2");
+					addVideoFilter("transpose=2");
+					
+				} else if (videoRotation.equals(270)) {
+					addVideoFilter("transpose=1");
+					
+				} else {
+					throw new IOException("Não sei rotacionar " + videoRotation + "º");
+				}
+			}
+		}
+		
+		// Adiciona os filtros (ex: scale), separados por vírgula
+		if (videoFilters != null) {
+			commands.add("-vf");
+			commands.add(StringUtils.join(videoFilters, ","));
 		}
 		
 		// Codec de áudio
@@ -541,9 +572,9 @@ public class FFmpegCommand {
 	
 	/**
 	 * Define a rotação do vídeo, em graus. Ex:
-	 * 90=Tombar para direita
+	 * 90=Tombar para esquerda
 	 * 180=Cabeca para baixo
-	 * 270=Tombar para esquerda
+	 * 270=Tombar para direita
 	 * null=Não rotacionar
 	 * 
 	 * OBS: A rotação será definida nos metadados, e não no encode do arquivo.
@@ -555,7 +586,7 @@ public class FFmpegCommand {
 	}
 	
 	public void setVideoRotationTombarParaDireita() {
-		setVideoRotation(90);
+		setVideoRotation(270);
 	}
 	
 	public void setVideoRotationCabecaParaBaixo() {
@@ -563,7 +594,7 @@ public class FFmpegCommand {
 	}
 	
 	public void setVideoRotationTombarParaEsquerda() {
-		setVideoRotation(270);
+		setVideoRotation(90);
 	}
 	
 	private Integer videoWidth;
