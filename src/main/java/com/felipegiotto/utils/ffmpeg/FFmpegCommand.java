@@ -138,8 +138,28 @@ public class FFmpegCommand {
 			commands.add("0");
 		}
 		
-		// Rotação do vídeo
-		if (videoRotation != null) {
+		// Rotação do vídeo / flip
+		if (videoRotationHorizontalFlip) {
+			
+			// Se encontrar uma forma de fazer "flip" sem reprocessar o vídeo, retirar essa restrição.
+			if (ENCODER_COPY.equals(videoEncoderCodec)) {
+				throw new IOException("Não é possível selecionar 'videoRotationHorizontalFlip' com encoder 'copy', pois o vídeo precisa ser reprocessado.", null);
+			}
+			
+			// Fonte: https://duxyng.wordpress.com/2013/04/07/rotateflip-video-with-ffmpeg/
+			allVideoFilters.add("hflip");
+			
+		} else if (videoRotationVerticalFlip) {
+			
+			// Se encontrar uma forma de fazer "flip" sem reprocessar o vídeo, retirar essa restrição.
+			if (ENCODER_COPY.equals(videoEncoderCodec)) {
+				throw new IOException("Não é possível selecionar 'videoRotationVerficalFlip' com encoder 'copy', pois o vídeo precisa ser reprocessado", null);
+			}
+			
+			// Fonte: https://duxyng.wordpress.com/2013/04/07/rotateflip-video-with-ffmpeg/
+			allVideoFilters.add("vflip");
+			
+		} else if (videoRotation != null) {
 			
 			// Se vídeo será somente copiado, adiciona um metadado de rotação.
 			// Se vídeo será recodificado, precisa fazer um "transpose"
@@ -554,6 +574,8 @@ public class FFmpegCommand {
 	}
 
 	Integer videoRotation;
+	boolean videoRotationHorizontalFlip = false;
+	boolean videoRotationVerticalFlip = false;
 	
 	/**
 	 * Define a rotação do vídeo, em graus. Ex:
@@ -568,6 +590,8 @@ public class FFmpegCommand {
 	 */
 	public void setVideoRotation(Integer videoRotation) {
 		this.videoRotation = videoRotation;
+		videoRotationHorizontalFlip = false;
+		videoRotationVerticalFlip = false;
 	}
 	
 	public void setVideoRotationTombarParaDireita() {
@@ -580,6 +604,14 @@ public class FFmpegCommand {
 	
 	public void setVideoRotationTombarParaEsquerda() {
 		setVideoRotation(90);
+	}
+	
+	public void setVideoRotationHorizontalFlip(boolean videoRotationHorizontalFlip) {
+		this.videoRotationHorizontalFlip = videoRotationHorizontalFlip;
+	}
+	
+	public void setVideoRotationVerticalFlip(boolean videoRotationVerticalFlip) {
+		this.videoRotationVerticalFlip = videoRotationVerticalFlip;
 	}
 	
 	private Integer videoWidth;
@@ -743,14 +775,5 @@ public class FFmpegCommand {
 				|| filename.endsWith(".FLV") 
 				|| filename.endsWith(".RMVB") 
 				|| filename.endsWith(".MOV");
-	}
-	
-	public static void main(String[] args) throws Exception {
-		setFFmpegPath("/Users/taeta/workspace/backup_fotos_e_macbook_ultimate/ffmpeg/ffmpeg-90148-g0419623cdc");
-		FFmpegCommand f = new FFmpegCommand();
-		f.setInputFile(new File("/Users/taeta/Desktop/Lixo/IMG_5706_compact_.mov"));
-		f.setVideoEncoderCopy();
-		f.setOutputFile(new File("/Users/taeta/Desktop/Lixo/IMG_5706_compact_teste.MOV"));
-		f.runAndWait(true);
 	}
 }

@@ -98,7 +98,7 @@ public class FFmpegCommandTest {
 	}
 	
 	@Test
-	public void rotacionandoVideoCopia() throws IOException {
+	public void rotacionandoVideo() throws IOException {
 		FFmpegCommand ffmpeg = criarObjetoMinimo();
 		ffmpeg.setInputFile("entrada.avi");
 		ffmpeg.setOutputFile("saida.avi");
@@ -109,6 +109,21 @@ public class FFmpegCommandTest {
 		
 		ffmpeg.setVideoEncoderCodec("libx264");
 		assertEquals("src/test/resources/ffmpeg -i entrada.avi -c:v libx264 -vf transpose=2 saida.avi", StringUtils.join(ffmpeg.buildParameters(), " "));
+	}
+	
+	@Test
+	public void rotacionandoHflip() throws IOException {
+		FFmpegCommand ffmpeg = criarObjetoMinimo();
+		ffmpeg.setInputFile("entrada.avi");
+		ffmpeg.setOutputFile("saida.avi");
+		ffmpeg.setVideoRotationHorizontalFlip(true);
+		
+		ffmpeg.setVideoEncoderCodec("libx264");
+		assertEquals("src/test/resources/ffmpeg -i entrada.avi -c:v libx264 -vf hflip saida.avi", StringUtils.join(ffmpeg.buildParameters(), " "));
+		
+		// Se encontrar uma forma de fazer "flip" sem reprocessar o vídeo, implementar e habilitar o teste
+//		ffmpeg.setVideoEncoderCopy();
+//		assertEquals("src/test/resources/ffmpeg -i entrada.avi -c:v copy -metadata:s:v:0 rotate=90 saida.avi", StringUtils.join(ffmpeg.buildParameters(), " "));
 	}
 	
 	@Test
@@ -202,4 +217,17 @@ public class FFmpegCommandTest {
 		assertTrue(FFmpegCommand.isArquivoVideo("video.avi"));
 		assertFalse(FFmpegCommand.isArquivoVideo("imagem.jpg"));
 	}
+	
+	public static void main(String[] args) throws Exception {
+		//TODO: sobrescrever arquivo original, porque se ja existir, trava
+		prepararCaminhoFFmpeg();
+		FFmpegCommand f = new FFmpegCommand();
+		f.setVideoEncoderCopy();
+		f.setInputFile(new File("/Users/taeta/Desktop/Lixo/lixo.mov"));
+		f.setVideoRotationVerticalFlip(true);
+		f.setOutputFile(new File("/Users/taeta/Desktop/Lixo/lixo_out.mov"));
+		f.setTempoFinal("00:00:03");
+		f.runAndWait(true);
+	}
+
 }
