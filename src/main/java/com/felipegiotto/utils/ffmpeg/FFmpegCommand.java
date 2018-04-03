@@ -91,6 +91,7 @@ public class FFmpegCommand {
 		commands.add(inputFile);
 		
 		// Tempos inicial e final
+		// TODO: implementar múltiplas janelas de tempo, aqui e na rotina de compactação de vídeos
 		if (tempoInicial != null) {
 			commands.add("-ss");
 			commands.add(tempoInicial);
@@ -100,19 +101,10 @@ public class FFmpegCommand {
 			commands.add(tempoFinal);
 		}
 		
-		// Codec de vídeo
-		if (TipoAudioVideo.ENCODE.equals(video)) {
-			if (videoEncoderCodec == null) {
-				throw new InvalidParameterException("Faltou definir codec de vídeo com 'setVideoEncoderCodec', pois foi utilizado setVideo(TipoVideo.ENCODE)");
-			}
+		// Codec de vídeo, que poderá ser "copy" ou o nome do encoder.
+		if (videoEncoderCodec != null) {
 			commands.add("-c:v");
 			commands.add(videoEncoderCodec);
-			
-		} else if (TipoAudioVideo.COPY.equals(video)) {
-			commands.add("-c:v");
-			commands.add("copy");
-//		} else {
-//			throw new NotImplementedException("Ainda não foi implementado: video=" + video);
 		}
 		
 		// Parametros extras para processar o video
@@ -140,7 +132,7 @@ public class FFmpegCommand {
 			
 			// Se vídeo será somente copiado, adiciona um metadado de rotação.
 			// Se vídeo será recodificado, precisa fazer um "transpose"
-			if (TipoAudioVideo.COPY.equals(video)) {
+			if (ENCODER_COPY.equals(videoEncoderCodec)) {
 				commands.add("-metadata:s:v:0");
 				commands.add("rotate=" + videoRotation);
 				
@@ -179,23 +171,18 @@ public class FFmpegCommand {
 		}
 		
 		// Codec de áudio
-		if (TipoAudioVideo.ENCODE.equals(audio)) {
-			if (audioEncoderCodec == null) {
-				throw new InvalidParameterException("Faltou definir codec de áudio com 'setAudioEncoderCodec', pois foi utilizado setAudio(TipoAudioVideo.ENCODE)");
-			}
+		if (audioEncoderCodec != null) {
 			commands.add("-c:a");
 			commands.add(audioEncoderCodec);
-			
-			// Parametros extras para processar o áudio (somente se estiver utilizando ENCODE)
-			if (audioExtraParameters != null) {
+		}
+		
+		// Parametros extras para processar o áudio (somente se estiver utilizando ENCODE)
+		if (audioExtraParameters != null) {
+			if (audioEncoderCodec != null && !ENCODER_COPY.equals(audioEncoderCodec)) {
 				commands.addAll(audioExtraParameters);
+			} else {
+				LOGGER.warn("Foram definidos parâmetros de processamento de áudio, mas o áudio não está sendo reprocessado. Os parâmetros serão ignorados. audioEncoderCodec='" + audioEncoderCodec + "', audioExtraParameters='" + audioExtraParameters + "'");
 			}
-			
-		} else if (TipoAudioVideo.COPY.equals(audio)) {
-			commands.add("-c:a");
-			commands.add("copy");
-//		} else {
-//			throw new NotImplementedException("Ainda não foi implementado: audio=" + audio);
 		}
 		
 		// Mover metadados do áudio para o início
@@ -306,39 +293,14 @@ public class FFmpegCommand {
 		this.tempoFinal = tempoFinal;
 	}
 
-	private TipoAudioVideo video;
-	private TipoAudioVideo audio;
+	public static final String ENCODER_COPY = "copy";
+	private String videoEncoderCodec = null;
+	private String audioEncoderCodec = null;
 	
 	/**
-	 * Define a forma de processamento do vídeo, que pode ser:
-	 * ENCODE: Reprocessa o vídeo conforme codec definido em "setVideoEncoderCodec"
-	 * COPY: Copia o vídeo do arquivo original, sem reprocessá-lo
-	 * NONE: Não grava vídeo no arquivo de saída.
+	 * Define o codec de processamento do vídeo.
 	 * 
-	 * @param video
-	 */
-	public void setVideo(TipoAudioVideo video) {
-		this.video = video;
-	}
-
-	/**
-	 * Define a forma de processamento do vídeo, que pode ser:
-	 * ENCODE: Reprocessa o vídeo conforme codec definido em "setVideoEncoderCodec"
-	 * COPY: Copia o vídeo do arquivo original, sem reprocessá-lo
-	 * NONE: Não grava vídeo no arquivo de saída.
-	 * 
-	 * @param video
-	 */
-	public void setAudio(TipoAudioVideo audio) {
-		this.audio = audio;
-	}
-
-	private String videoEncoderCodec;
-	private String audioEncoderCodec;
-	
-	/**
-	 * Define o codec de processamento do vídeo, quando for 
-	 * utilizado setVideo(TipoAudioVideo.ENCODE)
+	 * Para somente copiar o "stream" de vídeo, sem reprocessar, utilizar "setVideoEncoderCopy".
 	 * 
 	 * Para consultar todos os encoders disponíveis, utilizar o comando
 	 * "ffmpeg -encoders" e analisar os que possuem "V" (video) no início da linha
@@ -347,6 +309,38 @@ public class FFmpegCommand {
 	 */
 	public void setVideoEncoderCodec(String videoEncoderCodec) {
 		this.videoEncoderCodec = videoEncoderCodec;
+	}
+	
+	/**
+	 * Define que o vídeo será simplesmente copiado do arquivo de entrada para o de saída.
+	 * 
+	 * Para reprocessar o vídeo utilizando algum codec, utilizar "setVideoEncoderCodec"
+	 */
+	public void setVideoEncoderCopy() {
+		setVideoEncoderCodec(ENCODER_COPY);
+	}
+	
+	/**
+	 * Define o codec de processamento do áudio.
+	 * 
+	 * Para somente copiar o "stream" de áudio, sem reprocessar, utilizar "setAudioEncoderCodecCopy".
+	 * 
+	 * Para consultar todos os encoders disponíveis, utilizar o comando
+	 * "ffmpeg -encoders" e analisar os que possuem "A" (audio) no início da linha
+	 * 
+	 * @param audioEncoderCodec
+	 */
+	public void setAudioEncoderCodec(String audioEncoderCodec) {
+		this.audioEncoderCodec = audioEncoderCodec;
+	}
+	
+	/**
+	 * Define que o áudio será simplesmente copiado do arquivo de entrada para o de saída.
+	 * 
+	 * Para reprocessar o áudio utilizando algum codec, utilizar "setAudioEncoderCodec"
+	 */
+	public void setAudioEncoderCopy() {
+		setAudioEncoderCodec(ENCODER_COPY);
 	}
 	
 	/**
@@ -386,19 +380,6 @@ public class FFmpegCommand {
 		videoFilters.add(videoFilter);
 	}
 
-	/**
-	 * Define o codec de processamento do áudio, quando for 
-	 * utilizado setAudio(TipoAudioVideo.ENCODE)
-	 * 
-	 * Para consultar todos os encoders disponíveis, utilizar o comando
-	 * "ffmpeg -encoders" e analisar os que possuem "A" (audio) no início da linha
-	 * 
-	 * @param audioEncoderCodec
-	 */
-	public void setAudioEncoderCodec(String audioEncoderCodec) {
-		this.audioEncoderCodec = audioEncoderCodec;
-	}
-	
 	List<String> videoExtraParameters;
 	List<String> audioExtraParameters;
 	
@@ -478,7 +459,6 @@ public class FFmpegCommand {
 		
 		// Fonte: https://trac.ffmpeg.org/wiki/Encode/H.265
 		// Fonte (OLD): https://trac.ffmpeg.org/wiki/Encode/H.264
-		setVideo(TipoAudioVideo.ENCODE);
 		setVideoEncoderCodec("libx264");
 		
 		// Preset (qualidade x velocidade)
@@ -518,7 +498,6 @@ public class FFmpegCommand {
 
 		// Codec de audio
 		// Fonte: https://trac.ffmpeg.org/wiki/Encode/AAC
-		setAudio(TipoAudioVideo.ENCODE);
 		setAudioEncoderCodec("aac");
 		
 		// Qualidade do audio
@@ -537,7 +516,6 @@ public class FFmpegCommand {
 		// 15 = Prioridade baixa, para não prejudicar outras atividades do PC
 		setProcessNicePriority(15);
 		
-		setVideo(TipoAudioVideo.ENCODE);
 		setVideoEncoderCodec("libxvid");
 
 		// Preset (qualidade x velocidade)
@@ -561,7 +539,6 @@ public class FFmpegCommand {
 		}
 
 		// Codec de audio
-		setAudio(TipoAudioVideo.ENCODE);
 		setAudioEncoderCodec("libmp3lame");
 
 		// Qualidade do audio
@@ -764,7 +741,7 @@ public class FFmpegCommand {
 		setFFmpegPath("/Users/taeta/workspace/backup_fotos_e_macbook_ultimate/ffmpeg/ffmpeg-90148-g0419623cdc");
 		FFmpegCommand f = new FFmpegCommand();
 		f.setInputFile(new File("/Users/taeta/Desktop/Lixo/IMG_5706_compact_.mov"));
-		f.setVideo(TipoAudioVideo.COPY);
+		f.setVideoEncoderCopy();
 		f.setOutputFile(new File("/Users/taeta/Desktop/Lixo/IMG_5706_compact_teste.MOV"));
 		f.runAndWait(true);
 	}

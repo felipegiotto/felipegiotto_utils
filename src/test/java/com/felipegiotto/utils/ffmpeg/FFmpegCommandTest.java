@@ -59,7 +59,6 @@ public class FFmpegCommandTest {
 		FFmpegCommand ffmpeg = criarObjetoMinimo();
 		ffmpeg.setInputFile("entrada.avi");
 		ffmpeg.setOutputFile("saida.avi");
-		ffmpeg.setVideo(TipoAudioVideo.ENCODE);
 		ffmpeg.setVideoEncoderCodec("libx264");
 		ffmpeg.setVideoAddExtraParameters("-preset", "slow");
 		assertEquals("src/test/resources/ffmpeg -i entrada.avi -c:v libx264 -preset slow saida.avi", StringUtils.join(ffmpeg.buildParameters(), " "));
@@ -70,7 +69,7 @@ public class FFmpegCommandTest {
 		FFmpegCommand ffmpeg = criarObjetoMinimo();
 		ffmpeg.setInputFile("entrada.avi");
 		ffmpeg.setOutputFile("saida.avi");
-		ffmpeg.setVideo(TipoAudioVideo.COPY);
+		ffmpeg.setVideoEncoderCopy();
 		ffmpeg.setVideoRotation(90);
 		assertEquals("src/test/resources/ffmpeg -i entrada.avi -c:v copy -metadata:s:v:0 rotate=90 saida.avi", StringUtils.join(ffmpeg.buildParameters(), " "));
 	}
@@ -80,7 +79,6 @@ public class FFmpegCommandTest {
 		FFmpegCommand ffmpeg = criarObjetoMinimo();
 		ffmpeg.setInputFile("entrada.avi");
 		ffmpeg.setOutputFile("saida.avi");
-		ffmpeg.setVideo(TipoAudioVideo.ENCODE);
 		ffmpeg.setVideoEncoderCodec("libx264");
 		ffmpeg.setVideoRotation(90);
 		assertEquals("src/test/resources/ffmpeg -i entrada.avi -c:v libx264 -vf transpose=2 saida.avi", StringUtils.join(ffmpeg.buildParameters(), " "));
@@ -91,8 +89,8 @@ public class FFmpegCommandTest {
 		FFmpegCommand ffmpeg = criarObjetoMinimo();
 		ffmpeg.setInputFile("entrada.avi");
 		ffmpeg.setOutputFile("saida.avi");
-		ffmpeg.setVideo(TipoAudioVideo.COPY);
-		ffmpeg.setAudio(TipoAudioVideo.COPY);
+		ffmpeg.setVideoEncoderCopy();
+		ffmpeg.setAudioEncoderCopy();
 		assertEquals("src/test/resources/ffmpeg -i entrada.avi -c:v copy -c:a copy saida.avi", StringUtils.join(ffmpeg.buildParameters(), " "));
 	}
 	
@@ -113,13 +111,12 @@ public class FFmpegCommandTest {
 		FFmpegCommand ffmpeg = criarObjetoMinimo();
 		ffmpeg.setInputFile("entrada.avi");
 		ffmpeg.setOutputFile("saida.avi");
-		ffmpeg.setAudio(TipoAudioVideo.ENCODE);
 		ffmpeg.setAudioEncoderCodec("aac");
 		ffmpeg.setAudioAddExtraParameters("-b:a", "128k");
 		assertEquals("src/test/resources/ffmpeg -i entrada.avi -c:a aac -b:a 128k saida.avi", StringUtils.join(ffmpeg.buildParameters(), " "));
 		
 		// Se, agora, mudar o áudio para "copy", também deve zerar as informações extras de áudio
-		ffmpeg.setAudio(TipoAudioVideo.COPY);
+		ffmpeg.setAudioEncoderCopy();
 		assertEquals("src/test/resources/ffmpeg -i entrada.avi -c:a copy saida.avi", StringUtils.join(ffmpeg.buildParameters(), " "));
 	}
 	
