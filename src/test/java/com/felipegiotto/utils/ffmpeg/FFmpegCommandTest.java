@@ -65,22 +65,49 @@ public class FFmpegCommandTest {
 	}
 	
 	@Test
-	public void rotacionandoVideoCopia() throws IOException {
-		FFmpegCommand ffmpeg = criarObjetoMinimo();
-		ffmpeg.setInputFile("entrada.avi");
-		ffmpeg.setOutputFile("saida.avi");
-		ffmpeg.setVideoEncoderCopy();
-		ffmpeg.setVideoRotation(90);
-		assertEquals("src/test/resources/ffmpeg -i entrada.avi -c:v copy -metadata:s:v:0 rotate=90 saida.avi", StringUtils.join(ffmpeg.buildParameters(), " "));
-	}
-	
-	@Test
-	public void rotacionandoVideoRecode() throws IOException {
+	public void redimensionandoVideo() throws IOException {
 		FFmpegCommand ffmpeg = criarObjetoMinimo();
 		ffmpeg.setInputFile("entrada.avi");
 		ffmpeg.setOutputFile("saida.avi");
 		ffmpeg.setVideoEncoderCodec("libx264");
+		
+		// Tamanho definido
+		ffmpeg.setVideoResolution(200, 300);
+		assertEquals("src/test/resources/ffmpeg -i entrada.avi -c:v libx264 -vf scale=w=200:h=300 saida.avi", StringUtils.join(ffmpeg.buildParameters(), " "));
+		
+		// Somente largura
+		ffmpeg.setVideoResolution(200, null);
+		assertEquals("src/test/resources/ffmpeg -i entrada.avi -c:v libx264 -vf scale=200:-1 saida.avi", StringUtils.join(ffmpeg.buildParameters(), " "));
+		
+		// Somente altura
+		ffmpeg.setVideoResolution(null, 300);
+		assertEquals("src/test/resources/ffmpeg -i entrada.avi -c:v libx264 -vf scale=-1:300 saida.avi", StringUtils.join(ffmpeg.buildParameters(), " "));
+	}
+	
+	@Test
+	public void definindoLuminosidade() throws IOException {
+		FFmpegCommand ffmpeg = criarObjetoMinimo();
+		ffmpeg.setInputFile("entrada.avi");
+		ffmpeg.setOutputFile("saida.avi");
+		ffmpeg.setVideoEncoderCodec("libx264");
+		ffmpeg.setGanhoLuminosidade(2.0); // Deixa vídeo mais claro
+		assertEquals("src/test/resources/ffmpeg -i entrada.avi -c:v libx264 -vf lutyuv=y=val*2.0 saida.avi", StringUtils.join(ffmpeg.buildParameters(), " "));
+		
+		ffmpeg.setGanhoLuminosidade(null); // Retorna ao padrao
+		assertEquals("src/test/resources/ffmpeg -i entrada.avi -c:v libx264 saida.avi", StringUtils.join(ffmpeg.buildParameters(), " "));
+	}
+	
+	@Test
+	public void rotacionandoVideoCopia() throws IOException {
+		FFmpegCommand ffmpeg = criarObjetoMinimo();
+		ffmpeg.setInputFile("entrada.avi");
+		ffmpeg.setOutputFile("saida.avi");
 		ffmpeg.setVideoRotation(90);
+		
+		ffmpeg.setVideoEncoderCopy();
+		assertEquals("src/test/resources/ffmpeg -i entrada.avi -c:v copy -metadata:s:v:0 rotate=90 saida.avi", StringUtils.join(ffmpeg.buildParameters(), " "));
+		
+		ffmpeg.setVideoEncoderCodec("libx264");
 		assertEquals("src/test/resources/ffmpeg -i entrada.avi -c:v libx264 -vf transpose=2 saida.avi", StringUtils.join(ffmpeg.buildParameters(), " "));
 	}
 	

@@ -112,13 +112,24 @@ public class FFmpegCommand {
 			commands.addAll(videoExtraParameters);
 		}
 		
+		// Cria uma nova lista para armazenar os filtros, que conterá tanto os que 
+		// foram adicionados manualmente pelo usuário quanto os que foram definidos por
+		// certos parâmetros (como luminosidade, rotação, etc).
+		@SuppressWarnings("unchecked")
+		List<String> allVideoFilters = (List<String>) videoFilters.clone();
+		
+		// Ganho de luminosidade (>1 deixa mais claro, <1 deixa mais escuro)
+		if (ganhoLuminosidade != null) {
+			allVideoFilters.add("lutyuv=y=val*" + ganhoLuminosidade);
+		}
+		
 		// Redimensionando vídeo
 		if (videoWidth != null && videoHeight != null) {
-			addVideoFilter("scale=w=" + videoWidth + ":h=" + videoHeight);
+			allVideoFilters.add("scale=w=" + videoWidth + ":h=" + videoHeight);
 		} else if (videoWidth != null && videoHeight == null) {
-			addVideoFilter("scale=" + videoWidth + ":-1");
+			allVideoFilters.add("scale=" + videoWidth + ":-1");
 		} else if (videoWidth == null && videoHeight != null) {
-			addVideoFilter("scale=-1:" + videoHeight);
+			allVideoFilters.add("scale=-1:" + videoHeight);
 		}
 		
 		// Copiar metadados para destino
@@ -149,14 +160,14 @@ public class FFmpegCommand {
 				 * Fonte: https://stackoverflow.com/questions/3937387/rotating-videos-with-ffmpeg
 				 */
 				if (videoRotation.equals(90)) {
-					addVideoFilter("transpose=2");
+					allVideoFilters.add("transpose=2");
 					
 				} else if (videoRotation.equals(180)) {
-					addVideoFilter("transpose=2");
-					addVideoFilter("transpose=2");
+					allVideoFilters.add("transpose=2");
+					allVideoFilters.add("transpose=2");
 					
 				} else if (videoRotation.equals(270)) {
-					addVideoFilter("transpose=1");
+					allVideoFilters.add("transpose=1");
 					
 				} else {
 					throw new IOException("Não sei rotacionar " + videoRotation + "º");
@@ -165,9 +176,9 @@ public class FFmpegCommand {
 		}
 		
 		// Adiciona os filtros (ex: scale), separados por vírgula
-		if (videoFilters != null) {
+		if (!allVideoFilters.isEmpty()) {
 			commands.add("-vf");
-			commands.add(StringUtils.join(videoFilters, ","));
+			commands.add(StringUtils.join(allVideoFilters, ","));
 		}
 		
 		// Codec de áudio
@@ -343,6 +354,8 @@ public class FFmpegCommand {
 		setAudioEncoderCodec(ENCODER_COPY);
 	}
 	
+	private Double ganhoLuminosidade;
+	
 	/**
 	 * Define o ganho de luminosidade ao compactar o vídeo.
 	 * A luminosidade padrão é "1" (ou manter como NULL para que essa
@@ -356,12 +369,10 @@ public class FFmpegCommand {
 	 * @param ganhoLuminosidade
 	 */
 	public void setGanhoLuminosidade(Double ganhoLuminosidade) {
-		if (ganhoLuminosidade != null) {
-			addVideoFilter("lutyuv=y=val*" + ganhoLuminosidade);
-		}
+		this.ganhoLuminosidade = ganhoLuminosidade;
 	}
 	
-	List<String> videoFilters;
+	ArrayList<String> videoFilters = new ArrayList<>();
 	
 	/**
 	 * Adiciona um filtro de vídeo a ser passado ao ffmpeg.
@@ -374,9 +385,6 @@ public class FFmpegCommand {
 	 * @param videoFilter
 	 */
 	public void addVideoFilter(String videoFilter) {
-		if (videoFilters == null) {
-			videoFilters = new ArrayList<>();
-		}
 		videoFilters.add(videoFilter);
 	}
 
