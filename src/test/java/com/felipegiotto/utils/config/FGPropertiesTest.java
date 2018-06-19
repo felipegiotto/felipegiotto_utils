@@ -113,21 +113,20 @@ public class FGPropertiesTest {
 	}
 	
 	@Test
-	public void setStringMultiLine() throws IOException {
+	public void setStringMultiLineAccent() throws IOException {
 		FGProperties p = new FGProperties(propertiesFile.toPath(), false);
 		
-		p.setString("C1", "L1\n\nL2\n<br />");
-		p.setString("C2", "L1\\n\\nL2\\n<br />");
+		p.setString("C1", "L1\n\nL2ÁÇ\n<br />");
+		p.setString("C2", "L1\\n\\nL2ÁÇ\\n<br />");
 		assertTrue(p.containsKey("C1"));
-		assertEquals("L1\n\nL2\n<br />", p.getString("C1"));
-		assertEquals("L1\\n\\nL2\\n<br />", p.getString("C2"));
+		assertEquals("L1\n\nL2ÁÇ\n<br />", p.getString("C1"));
+		assertEquals("L1\\n\\nL2ÁÇ\\n<br />", p.getString("C2"));
 		
 		// Testa gravação em arquivo
 		p.save();
 		p = new FGProperties(propertiesFile.toPath(), false);
 		assertTrue(p.containsKey("C1"));
-		assertEquals("L1\n\nL2\n<br />", p.getString("C1"));
-		assertEquals("L1\\n\\nL2\\n<br />", p.getString("C2"));
+		assertEquals("L1\n\nL2ÁÇ\n<br />", p.getString("C1"));
+		assertEquals("L1\\n\\nL2ÁÇ\\n<br />", p.getString("C2"));
 	}
-	
 }
