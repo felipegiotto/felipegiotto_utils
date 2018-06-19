@@ -104,6 +104,10 @@ public class FGProperties {
 		}
 	}
 	
+	public void save() throws IOException {
+		salvarArquivoProperties(properties, pathArquivo, null);
+	}
+	
 	public void save(String comentario) throws IOException {
 		salvarArquivoProperties(properties, pathArquivo, comentario);
 	}
@@ -120,6 +124,10 @@ public class FGProperties {
 	
 	private boolean isEmptyOrNullValue(String value) {
 		return NULL_VALUE.equals(value) || StringUtils.isEmpty(value);
+	}
+	
+	public void remove(String key) {
+		properties.remove(key);
 	}
 	
 	/*********************** String ***********************/
