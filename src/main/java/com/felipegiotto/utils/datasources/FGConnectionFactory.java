@@ -80,6 +80,10 @@ public class FGConnectionFactory {
 	}
 	
 	public static DataSource getDefaultDataSource() throws SQLException {
+		
+		if (defaultJdbcName == null) {
+			throw new SQLException("Nenhum DataSource foi configurado. Informe algum DataSource com os métodos 'FGConnectionFactory.addManualDataSource' ou 'FGConnectionFactory.loadFromWebContext'");
+		}
 		return getDataSourceByJndiName(defaultJdbcName);
 	}
 	

@@ -119,6 +119,41 @@ public class FGDatabaseUtils {
 	
 	
 	/**
+	 * Lê um campo "int" de um ResultSet, retornando NULL quando necessário.
+	 * 
+	 * @param rs
+	 * @param fieldName
+	 * @return
+	 * @throws SQLException
+	 */
+	public static Integer getIntOrNull(ResultSet rs, String fieldName) throws SQLException {
+		Integer value = rs.getInt(fieldName);
+		if (rs.wasNull()) {
+			return null;
+		} else {
+			return value;
+		}
+	}
+	
+	
+	/**
+	 * Seta um parâmetro Integer em um PreparedStatement, utilizando "setNull" quando necessário
+	 * 
+	 * @param ps
+	 * @param parameterIndex
+	 * @param value
+	 * @throws SQLException
+	 */
+	public static void setIntOrNull(PreparedStatement ps, int parameterIndex, Integer value) throws SQLException {
+		if (value == null) {
+			ps.setNull(parameterIndex, Types.INTEGER);
+		} else {
+			ps.setInt(parameterIndex, value);
+		}
+	}
+	
+	
+	/**
 	 * Seta um parâmetro Boolean em um PreparedStatement, utilizando "setNull" quando necessário
 	 * 
 	 * @param ps
@@ -160,6 +195,81 @@ public class FGDatabaseUtils {
 	}
 	
 	/**
+	 * Executa um PreparedStatement e retorna o primeiro campo do 
+	 * primeiro registro do ResultSet, no formato Integer.
+	 * 
+	 * @param conn
+	 * @param sql
+	 * @return
+	 * @throws NotFoundException
+	 * @throws SQLException
+	 */
+	public static Integer executeQueryInt(PreparedStatement ps) throws NotFoundException, SQLException {
+		try (ResultSet rs = ps.executeQuery()) {
+			if (rs.next()) {
+				int value = rs.getInt(1);
+				if (rs.wasNull()) {
+					return null;
+				} else {
+					return value;
+				}
+			} else {
+				throw new NotFoundException("Record not found");
+			}
+		}
+	}
+	
+	/**
+	 * Executa uma consulta SQL e retorna o primeiro campo do 
+	 * primeiro registro do ResultSet, no formato Long.
+	 * 
+	 * @param conn
+	 * @param sql
+	 * @return
+	 * @throws NotFoundException
+	 * @throws SQLException
+	 */
+	public static Long executeQueryLong(Connection conn, String sql) throws NotFoundException, SQLException {
+		try (ResultSet rs = conn.createStatement().executeQuery(sql)) {
+			if (rs.next()) {
+				long value = rs.getLong(1);
+				if (rs.wasNull()) {
+					return null;
+				} else {
+					return value;
+				}
+			} else {
+				throw new NotFoundException("Record not found");
+			}
+		}
+	}
+	
+	/**
+	 * Executa um PreparedStatement e retorna o primeiro campo do 
+	 * primeiro registro do ResultSet, no formato Long.
+	 * 
+	 * @param conn
+	 * @param sql
+	 * @return
+	 * @throws NotFoundException
+	 * @throws SQLException
+	 */
+	public static Long executeQueryLong(PreparedStatement ps) throws NotFoundException, SQLException {
+		try (ResultSet rs = ps.executeQuery()) {
+			if (rs.next()) {
+				long value = rs.getLong(1);
+				if (rs.wasNull()) {
+					return null;
+				} else {
+					return value;
+				}
+			} else {
+				throw new NotFoundException("Record not found");
+			}
+		}
+	}
+	
+	/**
 	 * Executa uma consulta SQL e retorna o primeiro campo do 
 	 * primeiro registro do ResultSet, no formato Integer.
 	 * 
@@ -174,6 +284,24 @@ public class FGDatabaseUtils {
 	public static Integer executeQueryInt(String sql) throws NotFoundException, SQLException {
 		try (Connection conn = FGConnectionFactory.getDefaultDataSource().getConnection()) {
 			return executeQueryInt(conn, sql);
+		}
+	}
+	
+	/**
+	 * Executa uma consulta SQL e retorna o primeiro campo do 
+	 * primeiro registro do ResultSet, no formato Long.
+	 * 
+	 * Pega uma conexão do "default data source" e fecha depois
+	 * da consulta.
+	 * 
+	 * @param sql
+	 * @return
+	 * @throws NotFoundException
+	 * @throws SQLException
+	 */
+	public static Long executeQueryLong(String sql) throws NotFoundException, SQLException {
+		try (Connection conn = FGConnectionFactory.getDefaultDataSource().getConnection()) {
+			return executeQueryLong(conn, sql);
 		}
 	}
 	
@@ -196,6 +324,15 @@ public class FGDatabaseUtils {
 		return conn.createStatement().executeUpdate(sql);
 	}
 	
+	/**
+	 * Migra o banco de dados padrão, aplicando scripts de atualização conforme documentação do Flyway.
+	 * 
+	 * Resumo:
+	 * 1. Criar pasta "src/main/resources/db/migration"
+	 * 2. Criar scripts com número da versão e descrição, ex: "V1__Criar tabela X.sql".
+	 * 
+	 * @throws SQLException
+	 */
 	public static void migrateDatabase() throws SQLException {
 		
 		// Create the Flyway instance
