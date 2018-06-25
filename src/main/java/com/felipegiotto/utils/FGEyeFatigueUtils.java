@@ -1,6 +1,5 @@
 package com.felipegiotto.utils;
 
-import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
@@ -25,10 +24,12 @@ import javax.swing.border.EmptyBorder;
 public class FGEyeFatigueUtils {
 
 	private static Object monitor = new Object();
+	private static JFrame frame;
+	private static JButton button;
 	
 	public static void main(String[] args) throws InterruptedException {
 		
-        JFrame frame = prepareWindow();
+        prepareWindow();
 		
         while (true) {
         	for (int i=20; i>0; i--) {
@@ -50,17 +51,32 @@ public class FGEyeFatigueUtils {
 
 	private static void showWindow(JFrame frame) {
 		System.out.println("Take a break now!");
+		
+		// Habilita o botão somente alguns segundos depois, para evitar acionamentos acidentais.
+		button.setEnabled(false);
+		new Thread(new Runnable() {
+			@Override
+			public void run() {
+				try {
+					Thread.sleep(5_000);
+				} catch (InterruptedException e) {
+				}
+				button.setEnabled(true);
+			}
+		}).start();
+		
+		// Exibe a janela
 		frame.pack();
         frame.setLocationRelativeTo(null);
         frame.setVisible( true );
 	}
 
-	private static JFrame prepareWindow() {
+	private static void prepareWindow() {
 		
-		JFrame frame = new JFrame("FGEyeFatigueUtils");
-        frame.setAlwaysOnTop( true );
-        frame.setLocationByPlatform( true );
-        frame.setLayout(new FlowLayout(FlowLayout.LEADING));
+		frame = new JFrame("FGEyeFatigueUtils");
+        frame.setAlwaysOnTop(true);
+        frame.setLocationByPlatform(true);
+        frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         
         JPanel panel = new JPanel();
         panel.setBorder(new EmptyBorder(50, 50, 50, 50));
@@ -73,7 +89,7 @@ public class FGEyeFatigueUtils {
         JLabel label = new JLabel("Time to take a break!");
         panel.add(label, gbc);
         
-		JButton button = new JButton("OK, break is over");
+        button = new JButton("OK, break is over");
 		panel.add(button, gbc);
 		button.addActionListener(new ActionListener() {
 			
@@ -84,6 +100,5 @@ public class FGEyeFatigueUtils {
 				}
 			}
 		});
-		return frame;
 	}
 }
