@@ -4,6 +4,7 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.time.LocalDateTime;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -15,6 +16,8 @@ import javax.swing.border.EmptyBorder;
  * Classe utilizada para evitar fadiga ocular utilizando a técnica do "20-20-20" 
  * (a cada 20 minutos olhar para algo a 20 pés de distância durante 20 segundos).
  * 
+ * OBS: Na verdade, a pausa é a cada 30 minutos.
+ * 
  * Instruções: Executar a classe e fazer uma pausa quando notificado!
  * 
  * Fonte: https://abertoatedemadrugada.com/2014/02/evita-fadiga-ocular-em-frente-ao-pc-com.html
@@ -23,6 +26,7 @@ import javax.swing.border.EmptyBorder;
  */
 public class FGEyeFatigueUtils {
 
+	private static final int TEMPO_EM_MINUTOS_ENTRE_PAUSAS = 30;
 	private static Object monitor = new Object();
 	private static JFrame frame;
 	private static JButton button;
@@ -32,8 +36,8 @@ public class FGEyeFatigueUtils {
         prepareWindow();
 		
         while (true) {
-        	for (int i=20; i>0; i--) {
-        		System.out.println("Next break in " + i + "m");
+        	for (int i=TEMPO_EM_MINUTOS_ENTRE_PAUSAS; i>0; i--) {
+        		System.out.println(LocalDateTime.now() + ": Next break in " + i + "m");
         		Thread.sleep(60_000);
         	}
         	showWindow(frame);
