@@ -4,9 +4,10 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.IOException;
 import java.nio.charset.Charset;
 import java.time.LocalDateTime;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -33,7 +34,7 @@ import org.apache.commons.lang3.SystemUtils;
 public class FGEyeFatigueUtils {
 
 	private static final int TEMPO_EM_MINUTOS_ENTRE_PAUSAS = 30;
-	private static final int TEMPO_EM_MINUTOS_PARA_REINICIAR_CONTAGEM_COM_PROTETOR_DE_TELA_ATIVO = 5;
+	private static final int TEMPO_EM_MINUTOS_PARA_REINICIAR_CONTAGEM_COM_PROTETOR_DE_TELA_ATIVO = 2;
 	private static Object monitor = new Object();
 	private static JFrame frame;
 	private static JButton button;
@@ -82,6 +83,27 @@ public class FGEyeFatigueUtils {
 				String retorno = StringUtils.join(IOUtils.readLines(process.getInputStream(), Charset.defaultCharset()), "");
 				if (retorno.contains(" ativa") || retorno.contains(" active")) {
 					return true;
+				}
+				
+			} else if (SystemUtils.IS_OS_MAC_OSX) {
+				Process process = Runtime.getRuntime().exec(new String[] {"ioreg", "-n", "IODisplayWrangler"});
+				
+				try {
+					// Exemplo de retorno:
+					// Tela ATIVA (protetor desligado)
+					// (...) ,"DevicePowerState"=4, (...)
+					// Tela DESLIGADA:
+					// (...) ,"DevicePowerState"=1, (...)
+					String retorno = StringUtils.join(IOUtils.readLines(process.getInputStream(), Charset.defaultCharset()), "");
+					Pattern p = Pattern.compile("\"DevicePowerState\"=(\\d+)");
+					Matcher m = p.matcher(retorno);
+					if (m.find()) {
+						if (!m.group(1).equals("4")) {
+							return true;
+						}
+					}
+				} finally {
+					process.waitFor();
 				}
 			}
 			return false;
