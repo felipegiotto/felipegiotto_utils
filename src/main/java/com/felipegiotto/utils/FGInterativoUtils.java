@@ -99,4 +99,28 @@ public class FGInterativoUtils {
 			System.out.println("Resposta inválida! Responda com 'S' ou 'N'.");
 		}
 	}
+	
+	/**
+	 * Faz uma pergunta para o usuário, aceitando somente números inteiros como resposta
+	 * 
+	 * @param pergunta
+	 * @param podeSerNegativo indica se o número informado pode ser menor que zero
+	 * @return
+	 */
+	public static int perguntarNumeroInteiroParaUsuario(String pergunta, boolean podeSerNegativo) {
+		while (true) {
+			System.out.println("");
+			System.out.println(pergunta);
+			String resposta = aguardarRespostaUsuario();
+			try {
+				int numero = Integer.parseInt(resposta);
+				if (!podeSerNegativo && numero < 0) {
+					throw new NumberFormatException();
+				}
+				return numero;
+			} catch (NumberFormatException ex) {
+				System.out.println("Valor inválido! Digite um número" + (podeSerNegativo ? "" : " não negativo") + ".");
+			}
+		}
+	}
 }
