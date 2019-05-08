@@ -90,10 +90,13 @@ public class FFmpegCommandTest {
 		ffmpeg.setInputFile("entrada.avi");
 		ffmpeg.setOutputFile("saida.avi");
 		ffmpeg.setVideoEncoderCodec("libx264");
-		ffmpeg.setGanhoLuminosidade(2.0); // Deixa vídeo mais claro
-		assertEquals("src/test/resources/ffmpeg -i entrada.avi -c:v libx264 -vf lutyuv=y=val*2.0 saida.avi", StringUtils.join(ffmpeg.buildParameters(), " "));
+//		ffmpeg.setGanhoLuminosidade(2.0); // Deixa vídeo mais claro
+		ffmpeg.setLuminosidadeMaisClara(true);
+//		assertEquals("src/test/resources/ffmpeg -i entrada.avi -c:v libx264 -vf lutyuv=y=val*2.0 saida.avi", StringUtils.join(ffmpeg.buildParameters(), " "));
+		assertEquals("src/test/resources/ffmpeg -i entrada.avi -c:v libx264 -vf curves=r='0/0.1 0.3/0.5 1/1':g='0/0.1 0.3/0.5 1/1':b='0/0.1 0.3/0.5 1/1' saida.avi", StringUtils.join(ffmpeg.buildParameters(), " "));
 		
-		ffmpeg.setGanhoLuminosidade(null); // Retorna ao padrao
+//		ffmpeg.setGanhoLuminosidade(null); // Retorna ao padrao
+		ffmpeg.setLuminosidadeMaisClara(false); // Retorna ao padrao
 		assertEquals("src/test/resources/ffmpeg -i entrada.avi -c:v libx264 saida.avi", StringUtils.join(ffmpeg.buildParameters(), " "));
 	}
 	

@@ -119,8 +119,12 @@ public class FFmpegCommand {
 		List<String> allVideoFilters = (List<String>) videoFilters.clone();
 		
 		// Ganho de luminosidade (>1 deixa mais claro, <1 deixa mais escuro)
-		if (ganhoLuminosidade != null) {
-			allVideoFilters.add("lutyuv=y=val*" + ganhoLuminosidade);
+//		if (ganhoLuminosidade != null) {
+//			allVideoFilters.add("lutyuv=y=val*" + ganhoLuminosidade);
+//		}
+		// TODO: Melhorar, voltando para um esquema parecido com o anterior, com "ganhoLuminosidade", mas utilizando as curvas em vez de "lutyuv"
+		if (luminosidadeMaisClara) {
+			allVideoFilters.add("curves=r='0/0.1 0.3/0.5 1/1':g='0/0.1 0.3/0.5 1/1':b='0/0.1 0.3/0.5 1/1'");
 		}
 		
 		// Redimensionando vídeo
@@ -374,7 +378,8 @@ public class FFmpegCommand {
 		setAudioEncoderCodec(ENCODER_COPY);
 	}
 	
-	private Double ganhoLuminosidade;
+	private boolean luminosidadeMaisClara;
+	//private Double ganhoLuminosidade;
 	
 	/**
 	 * Define o ganho de luminosidade ao compactar o vídeo.
@@ -388,8 +393,11 @@ public class FFmpegCommand {
 	 * 
 	 * @param ganhoLuminosidade
 	 */
-	public void setGanhoLuminosidade(Double ganhoLuminosidade) {
-		this.ganhoLuminosidade = ganhoLuminosidade;
+//	public void setGanhoLuminosidade(Double ganhoLuminosidade) {
+//		this.ganhoLuminosidade = ganhoLuminosidade;
+//	}
+	public void setLuminosidadeMaisClara(boolean luminosidadeMaisClara) {
+		this.luminosidadeMaisClara = luminosidadeMaisClara;
 	}
 	
 	ArrayList<String> videoFilters = new ArrayList<>();
