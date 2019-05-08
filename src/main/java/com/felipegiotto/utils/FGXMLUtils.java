@@ -20,6 +20,12 @@ import java.io.IOException;
 public class FGXMLUtils {
 
 	/**
+	 * Não instanciar - utilizar somente métodos estáticos
+	 */
+	private FGXMLUtils() { }
+	
+	
+	/**
 	 * Serializa um objeto em um arquivo XML
 	 * 
 	 * @param object

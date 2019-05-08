@@ -1,4 +1,4 @@
-package com.felipegiotto.utils;
+package com.felipegiotto.misc;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -31,7 +31,7 @@ import org.apache.commons.lang3.SystemUtils;
  * 
  * @author felipegiotto@gmail.com
  */
-public class FGEyeFatigueUtils {
+public class FGEyeFatigueMonitor {
 
 	private static final int TEMPO_EM_MINUTOS_ENTRE_PAUSAS = 30;
 	private static final int TEMPO_EM_MINUTOS_PARA_REINICIAR_CONTAGEM_COM_PROTETOR_DE_TELA_ATIVO = 2;

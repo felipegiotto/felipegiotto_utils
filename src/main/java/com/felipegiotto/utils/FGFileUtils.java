@@ -1,19 +1,8 @@
 package com.felipegiotto.utils;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.FilenameFilter;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.Properties;
-
-//import org.apache.logging.log4j.LogManager;
-//import org.apache.logging.log4j.Logger;
 
 /**
  * Métodos auxiliares referentes a arquivos ou pastas
@@ -21,6 +10,12 @@ import java.util.Properties;
  * @author felipegiotto@gmail.com
  */
 public class FGFileUtils {
+	
+	/**
+	 * Não instanciar - utilizar somente métodos estáticos
+	 */
+	private FGFileUtils() { }
+	
 	
 	public static void garantirQuePastaExista(File in) throws IOException {
 		if (!in.isDirectory()) {

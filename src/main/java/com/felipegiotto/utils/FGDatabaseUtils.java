@@ -25,6 +25,11 @@ public class FGDatabaseUtils {
 	private static final Logger LOGGER = LogManager.getLogger(FGDatabaseUtils.class);
 	
 	/**
+	 * Não instanciar - utilizar somente métodos estáticos
+	 */
+	private FGDatabaseUtils() { }
+	
+	/**
 	 * Fecha todos os objetos recebidos por parametro, chamando o metodo "close()".
 	 * Qualquer exceção será logada e suprimida.
 	 * 

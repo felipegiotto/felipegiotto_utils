@@ -19,6 +19,12 @@ public class FGStreamUtils {
 	private static final Logger LOGGER = LogManager.getLogger(FGStreamUtils.class);
 	
 	/**
+	 * Não instanciar - utilizar somente métodos estáticos
+	 */
+	private FGStreamUtils() { }
+	
+	
+	/**
 	 * Consome um stream de forma assíncrona, logando (ou não) cada linha que é lida
 	 *
 	 * Se prefixo == null || level == null, não escreve nada no log

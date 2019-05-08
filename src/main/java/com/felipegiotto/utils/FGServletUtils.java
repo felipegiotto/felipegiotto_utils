@@ -28,6 +28,12 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class FGServletUtils {
 
+	/**
+	 * Não instanciar - utilizar somente métodos estáticos
+	 */
+	private FGServletUtils() { }
+	
+	
 	public static void doHeadServeFileWithRange(File file, HttpServletRequest request, HttpServletResponse response) throws IOException {
 		processRequestServeFileWithRange(file, request, response, false);
 	}

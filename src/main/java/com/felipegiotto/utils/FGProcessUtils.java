@@ -17,6 +17,12 @@ public class FGProcessUtils {
 	private static final Logger LOGGER = LogManager.getLogger(FGProcessUtils.class);
 	
 	/**
+	 * Não instanciar - utilizar somente métodos estáticos
+	 */
+	private FGProcessUtils() { }
+	
+	
+	/**
 	 * Confere se um processo retornou o valor esperado. Se não, lança uma RuntimeException.
 	 * 
 	 * @param process

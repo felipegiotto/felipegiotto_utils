@@ -14,6 +14,11 @@ import org.apache.logging.log4j.Logger;
  */
 public class FGInterativoUtils {
 
+	/**
+	 * Não instanciar - utilizar somente métodos estáticos
+	 */
+	private FGInterativoUtils() { }
+	
 	private static final Logger LOGGER = LogManager.getLogger(FGInterativoUtils.class);
 	
 	/**
