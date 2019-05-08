@@ -105,27 +105,41 @@ public class FGInterativoUtils {
 		}
 	}
 	
+	public static interface AceitarNumero {
+		boolean aceitar(int numero);
+	}
+	
 	/**
 	 * Faz uma pergunta para o usuário, aceitando somente números inteiros como resposta
 	 * 
 	 * @param pergunta
-	 * @param podeSerNegativo indica se o número informado pode ser menor que zero
+	 * @param aceitarNumero : permite definir uma regra de aceite. Utilizar lambda expression, ex: "(numero) -> numero > 0"
 	 * @return
 	 */
-	public static int perguntarNumeroInteiroParaUsuario(String pergunta, boolean podeSerNegativo) {
+	public static int perguntarNumeroInteiroParaUsuario(String pergunta, AceitarNumero aceitarNumero) {
 		while (true) {
 			System.out.println("");
 			System.out.println(pergunta);
 			String resposta = aguardarRespostaUsuario();
 			try {
 				int numero = Integer.parseInt(resposta);
-				if (!podeSerNegativo && numero < 0) {
+				if (aceitarNumero != null && !aceitarNumero.aceitar(numero)) {
 					throw new NumberFormatException();
 				}
 				return numero;
 			} catch (NumberFormatException ex) {
-				System.out.println("Valor inválido! Digite um número" + (podeSerNegativo ? "" : " não negativo") + ".");
+				System.out.println("Valor inválido!");
 			}
 		}
+	}
+	
+	/**
+	 * Faz uma pergunta para o usuário, aceitando somente números inteiros como resposta
+	 * 
+	 * @param pergunta
+	 * @return
+	 */
+	public static int perguntarNumeroInteiroParaUsuario(String pergunta) {
+		return perguntarNumeroInteiroParaUsuario(pergunta, null);
 	}
 }
