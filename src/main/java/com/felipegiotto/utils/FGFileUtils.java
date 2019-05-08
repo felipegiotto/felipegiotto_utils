@@ -74,7 +74,7 @@ public class FGFileUtils {
 
 		// Tenta encontrar arquivo apagando "\ ", que pode aparecer ao copiar arquivos
 		// no Finder e colar no Terminal.
-		f = new File(caminho.replaceAll("\\\\ ", " "));
+		f = new File(caminho.replaceAll("\\\\", ""));
 		if (f.exists()) {
 			return f;
 		}
