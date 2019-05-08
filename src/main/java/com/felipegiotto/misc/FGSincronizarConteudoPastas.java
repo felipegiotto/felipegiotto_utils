@@ -279,7 +279,17 @@ public class FGSincronizarConteudoPastas {
 								excluirRecursivamente(filhoDestino);
 							}
 						}
-						Files.createDirectories(filhoDestino);
+						try {
+							Files.createDirectories(filhoDestino);
+						} catch (IOException ex) {
+							qtdErros++;
+							String erro = "Erro criando pasta '" + filhoDestino + "': " + ex.getLocalizedMessage();
+							if (erros.size() < 100) {
+								erros.add(erro);
+							}
+							LOGGER.error(nome + erro, ex);
+							continue;
+						}
 					}
 					processarRecursivamente(filhoOrigem, filhoDestino);
 
