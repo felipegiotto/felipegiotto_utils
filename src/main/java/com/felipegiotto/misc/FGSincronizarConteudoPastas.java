@@ -69,6 +69,7 @@ public class FGSincronizarConteudoPastas {
 
 	private boolean deveCopiarArquivoSeTamanhosForemDiferentes = true;
 	private boolean deveCopiarArquivoSeDatasForemDiferentes = true;
+	private long toleranciaMaximaDataModificacaoMillis = 0;
 	
 	// Variáveis para mostrar progresso:
 	private Path pastaSendoCopiadaAgora;
@@ -592,12 +593,12 @@ public class FGSincronizarConteudoPastas {
 		if (deveCopiarArquivoSeDatasForemDiferentes) {
 			FileTime origemTime = Files.getLastModifiedTime(origem);
 			FileTime destinoTime = Files.getLastModifiedTime(destino);
-			long diferencaAbs = Math.abs(origemTime.toMillis() - destinoTime.toMillis());
-			long diferencaEmHoras = diferencaAbs / (60 * 60 * 1000);
-			long restoDiferencaEmHoras = diferencaAbs % (60 * 60 * 1000);
-			if (diferencaEmHoras > 10 || restoDiferencaEmHoras > 0) {
+			long diferencaTotal = Math.abs(origemTime.toMillis() - destinoTime.toMillis());
+			long diferencaEmHoras = diferencaTotal / (60 * 60 * 1000);
+			long restoDiferencaEmHoras = diferencaTotal % (60 * 60 * 1000);
+			if ((diferencaTotal > toleranciaMaximaDataModificacaoMillis) && (diferencaEmHoras > 10 || restoDiferencaEmHoras > 0)) {
 				LOGGER.info(nome + "Data de modificacao diferente (" + origemTime + " - " + destinoTime + " - Diferenca de "
-						+ DurationFormatUtils.formatDurationHMS(diferencaAbs) + "): " + origem);
+						+ DurationFormatUtils.formatDurationHMS(diferencaTotal) + "): " + origem);
 				return true;
 			}
 		}
@@ -720,6 +721,10 @@ public class FGSincronizarConteudoPastas {
 	
 	public void setDeveCopiarArquivoSeDatasForemDiferentes(boolean deveCopiarArquivoSeDatasForemDiferentes) {
 		this.deveCopiarArquivoSeDatasForemDiferentes = deveCopiarArquivoSeDatasForemDiferentes;
+	}
+	
+	public void setToleranciaMaximaDataModificacaoMillis(long millis) {
+		this.toleranciaMaximaDataModificacaoMillis = millis;
 	}
 	
 	public void setDeveCopiarArquivoSeTamanhosForemDiferentes(boolean deveCopiarArquivoSeTamanhosForemDiferentes) {
