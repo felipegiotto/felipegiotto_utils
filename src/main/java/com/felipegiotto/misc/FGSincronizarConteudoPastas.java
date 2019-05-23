@@ -69,7 +69,11 @@ public class FGSincronizarConteudoPastas {
 
 	private boolean deveCopiarArquivoSeTamanhosForemDiferentes = true;
 	private boolean deveCopiarArquivoSeDatasForemDiferentes = true;
+	private boolean deveCriarPastasSomenteSeHouverConteudo = false;
 	private long toleranciaMaximaDataModificacaoMillis = 0;
+	
+	private List<Path> listaDeArquivosSincronizadosOrigem = new ArrayList<>();
+	private boolean deveArmazenarERetornarListaDeArquivosSincronizadosOrigem = true;
 	
 	// Variáveis para mostrar progresso:
 	private Path pastaSendoCopiadaAgora;
@@ -281,7 +285,9 @@ public class FGSincronizarConteudoPastas {
 							}
 						}
 						try {
-							Files.createDirectories(filhoDestino);
+							if (!deveCriarPastasSomenteSeHouverConteudo) {
+								Files.createDirectories(filhoDestino);
+							}
 						} catch (IOException ex) {
 							qtdErros++;
 							String erro = "Erro criando pasta '" + filhoDestino + "': " + ex.getLocalizedMessage();
@@ -328,6 +334,9 @@ public class FGSincronizarConteudoPastas {
 						} else {
 							qtdArquivosJaEstavamSincronizados++;
 							totalBytesArquivosJaEstavamSincronizados += tamanhoFilhoOrigem;
+						}
+						if (deveArmazenarERetornarListaDeArquivosSincronizadosOrigem) {
+							listaDeArquivosSincronizadosOrigem.add(filhoOrigem);
 						}
 
 					} else {
@@ -443,6 +452,10 @@ public class FGSincronizarConteudoPastas {
 			tempoManipulandoArquivos.resume();
 			try {
 			
+				// Pode ser que a pasta de destino ainda não tenha sido criada (conforme 
+				// flag "deveCriarPastasSomenteSeHouverConteudo")
+				Files.createDirectories(filhoDestino.getParent());
+
 				long ultimoProgresso = System.currentTimeMillis();
 				long tamanhoOrigem = Files.size(filhoOrigem);
 				try (InputStream fis = Files.newInputStream(filhoOrigem)) {
@@ -557,7 +570,7 @@ public class FGSincronizarConteudoPastas {
 
 	private static DecimalFormat df = new DecimalFormat("###,###");
 
-	private static String byteCountToDisplaySize(long bytes) {
+	public static String byteCountToDisplaySize(long bytes) {
 		StringBuilder sb = new StringBuilder();
 		sb.append(FileUtils.byteCountToDisplaySize(bytes));
 		if (bytes > 0) {
@@ -666,7 +679,9 @@ public class FGSincronizarConteudoPastas {
 			
 			tempoManipulandoArquivos.resume();
 			try {
-				Files.deleteIfExists(destino);
+				if (!simulacao) {
+					Files.deleteIfExists(destino);
+				}
 				qtdArquivosExcluidos++;
 				
 			} catch (Exception ex) {
@@ -715,6 +730,16 @@ public class FGSincronizarConteudoPastas {
 		return totalBytesArquivosOrigem;
 	}
 
+	/**
+	 * <pre>
+	   DirectoryStream.Filter<Path> customFileFilter = new DirectoryStream.Filter<Path>() {
+			@Override
+			public boolean accept(Path path) {
+				// ...
+			}
+		};
+	 * </pre>
+	 */
 	public void setCustomFileFilter(DirectoryStream.Filter<Path> customFilenameFilter) {
 		this.customFileFilter = customFilenameFilter;
 	}
@@ -730,7 +755,19 @@ public class FGSincronizarConteudoPastas {
 	public void setDeveCopiarArquivoSeTamanhosForemDiferentes(boolean deveCopiarArquivoSeTamanhosForemDiferentes) {
 		this.deveCopiarArquivoSeTamanhosForemDiferentes = deveCopiarArquivoSeTamanhosForemDiferentes;
 	}
+	
+	public void setDeveCriarPastasSomenteSeHouverConteudo(boolean deveCriarPastasSomenteSeHouverConteudo) {
+		this.deveCriarPastasSomenteSeHouverConteudo = deveCriarPastasSomenteSeHouverConteudo;
+	}
+	
+	public void setDeveArmazenarERetornarListaDeArquivosSincronizadosOrigem(boolean valor) {
+		this.deveArmazenarERetornarListaDeArquivosSincronizadosOrigem = valor;
+	}
 
+	public List<Path> getListaDeArquivosSincronizadosOrigem() {
+		return listaDeArquivosSincronizadosOrigem;
+	}
+	
 	public void mostrarEstatisticaUltimaExecucao() {
 		if (estatisticaTempoUltimaExecucao > 0) {
 			LOGGER.info(

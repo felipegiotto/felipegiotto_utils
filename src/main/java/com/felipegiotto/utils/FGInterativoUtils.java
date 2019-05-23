@@ -149,6 +149,8 @@ public class FGInterativoUtils {
 	/**
 	 * Exibe um submenu com um título e uma lista de itens que podem ser selecionados e executados.
 	 * 
+	 * Este submenu será persistente, ou seja, quando a operação terminar ele será exibido novamente.
+	 * 
 	 * Exemplo de utilização com lambda expressions:
 	 * <pre>
 		exibirSubmenuPersistente("Selecione item", true, (itens) -> {
@@ -163,34 +165,59 @@ public class FGInterativoUtils {
 	 * @param coletorSubmenus
 	 */
 	public static void exibirSubmenuPersistente(String titulo, boolean descartarExceptions, ColetorSubmenus coletorSubmenus) throws Exception {
-		while (true) {
-			Map<String, RunnableComException> lista = new LinkedHashMap<>();
-			coletorSubmenus.coletar(lista);
-			List<String> titulos = new ArrayList<>();
-			List<RunnableComException> targets = new ArrayList<>();
-			for (Entry<String, RunnableComException> entry : lista.entrySet()) {
-				titulos.add(entry.getKey());
-				targets.add(entry.getValue());
-			}
-			int opcao = perguntarOpcoesParaUsuario(titulo, true, titulos.toArray(new String[0]));
-			if (opcao == 0) {
-				return;
-				
-			} else {
-				RunnableComException runnable = targets.get(opcao - 1);
-				try {
-					runnable.run();
-				} catch (Exception ex) {
-					if (descartarExceptions) {
-						LOGGER.error(ex.getLocalizedMessage(), ex);
-					} else {
-						throw ex;
-					}
-				}
-			}
+		while (exibirSubmenu(titulo, descartarExceptions, coletorSubmenus)) {
+			// Retornará automaticamente quando usuário selecionar "Voltar"
 		}
 	}
 	
+	/**
+	 * Exibe um submenu com um título e uma lista de itens que podem ser selecionados e executados.
+	 * 
+	 * Este submenu será exibido uma única vez.
+	 * @see #exibirSubmenuPersistente(String, boolean, ColetorSubmenus)
+	 * 
+	 * Exemplo de utilização com lambda expressions:
+	 * <pre>
+		exibirSubmenu("Selecione item", true, (itens) -> {
+			itens.put("Operação 1", () -> { System.out.println("Executando operação 1"); });
+			itens.put("Operação 2", () -> { System.out.println("Executando operação 2"); });
+			itens.put("Operação 3", () -> { System.out.println("Executando operação 3"); });
+		});
+	 * </pre>
+	 * 
+	 * @param titulo
+	 * @param descartarExceptions indica se exceções disparadas durante as operações serão descartadas (depois de registrar no log)
+	 * @param coletorSubmenus
+	 */
+	public static boolean exibirSubmenu(String titulo, boolean descartarExceptions, ColetorSubmenus coletorSubmenus) throws Exception {
+		
+		Map<String, RunnableComException> lista = new LinkedHashMap<>();
+		coletorSubmenus.coletar(lista);
+		List<String> titulos = new ArrayList<>();
+		List<RunnableComException> targets = new ArrayList<>();
+		for (Entry<String, RunnableComException> entry : lista.entrySet()) {
+			titulos.add(entry.getKey());
+			targets.add(entry.getValue());
+		}
+		int opcao = perguntarOpcoesParaUsuario(titulo, true, titulos.toArray(new String[0]));
+		if (opcao == 0) {
+			return false;
+			
+		} else {
+			RunnableComException runnable = targets.get(opcao - 1);
+			try {
+				runnable.run();
+			} catch (Exception ex) {
+				if (descartarExceptions) {
+					LOGGER.error(ex.getLocalizedMessage(), ex);
+				} else {
+					throw ex;
+				}
+			}
+			return true;
+		}
+	}
+
 	/**
 	 * Exibe um submenu com um título e uma lista de itens que podem ser selecionados e executados.
 	 * Qualquer exceção lançada durante a execução dos submenus será logada e, em seguida, descartada.
@@ -214,7 +241,7 @@ public class FGInterativoUtils {
 	}
 	
 	public interface ColetorSubmenus {
-		public void coletar(Map<String, RunnableComException> lista);
+		public void coletar(Map<String, RunnableComException> lista) throws Exception;
 	}
 	
 	public interface RunnableComException {

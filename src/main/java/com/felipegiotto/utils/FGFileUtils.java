@@ -3,6 +3,8 @@ package com.felipegiotto.utils;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 /**
  * Métodos auxiliares referentes a arquivos ou pastas
@@ -15,6 +17,13 @@ public class FGFileUtils {
 	 * Não instanciar - utilizar somente métodos estáticos
 	 */
 	private FGFileUtils() { }
+	
+	
+	public static void garantirQuePastaExista(Path in) throws IOException {
+		if (!Files.isDirectory(in)) {
+			throw new IOException("Pasta não existe: " + in);
+		}
+	}
 	
 	
 	public static void garantirQuePastaExista(File in) throws IOException {
