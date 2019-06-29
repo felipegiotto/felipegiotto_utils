@@ -83,12 +83,20 @@ public class FFmpegCommand {
 		// Comando ffmpeg
 		commands.add(FFmpegPath);
 		
-		// Arquivo de entrada
-		if (inputFile == null) {
+		// Arquivos de entrada
+		if (inputFiles.size() == 0) {
 			throw new InvalidParameterException("Faltou definir arquivo de entrada com setInputFile!");
 		}
-		commands.add("-i");
-		commands.add(inputFile);
+		for (String file: inputFiles) {
+			commands.add("-i");
+			commands.add(file);
+		}
+		
+		// Se houver mais de um arquivo, precisa especificar a concatenação
+		if (inputFiles.size() > 1) {
+			commands.add("-filter_complex");
+			commands.add("concat=n=" + inputFiles.size() + ":v=1:a=1");
+		}
 		
 		// Tempos inicial e final
 		// TODO: implementar múltiplas janelas de tempo, aqui e na rotina de compactação de vídeos
@@ -235,7 +243,7 @@ public class FFmpegCommand {
 		return commands;
 	}
 
-	private String inputFile;
+	private List<String> inputFiles = new ArrayList<>();
 	
 	/**
 	 * Configura o arquivo de entrada, que será processado pelo ffmpeg.
@@ -244,12 +252,12 @@ public class FFmpegCommand {
 	 * 
 	 * @param inputFile
 	 */
-	public void setInputFile(String inputFile) {
-		this.inputFile = inputFile;
+	public void addInputFile(String inputFile) {
+		this.inputFiles.add(inputFile);
 	}
 	
-	public void setInputFile(File inputFile) {
-		this.inputFile = inputFile.getAbsolutePath();
+	public void addInputFile(File inputFile) {
+		this.inputFiles.add(inputFile.getAbsolutePath());
 	}
 	
 	private String outputFile;
@@ -488,13 +496,45 @@ public class FFmpegCommand {
 	 * Este padrão foi estudado conforme testes descritos no arquivo "pesquisa_codec_video.xml",
 	 * de modo que funcione em diversos dispositivos (mac, celular, whatsapp, google drive, etc).
 	 */
-	public void configurarPadraoCamerasFelipe(boolean presetSlow) {
+	public void configurarPadraoCamerasFelipe(boolean utilizarH265, boolean presetSlow) {
 		
 		// 15 = Prioridade baixa, para não prejudicar outras atividades do PC
 		setProcessNicePriority(15);
 		
-		// Fonte: https://trac.ffmpeg.org/wiki/Encode/H.265
-		// Fonte (OLD): https://trac.ffmpeg.org/wiki/Encode/H.264
+		if (utilizarH265) {
+			configurarVideoH265(presetSlow);
+		} else {
+			configurarVideoH264(presetSlow);
+		}
+
+		// Adiciona metadados do vídeo original.
+		// Se esse parâmetro não existir, alguns metadados não são migrados para o vídeo 
+		// compactado, ex: "creation_time". Esses metadados, são importantes, por exemplo,
+		// para colocar o prefixo no nome do arquivo com o instante em que o vídeo foi gravado.
+		// A lista dos metadados de um arquivo pode ser consultada com "ffmpeg -i <arquivo>"
+		// Fonte: http://superuser.com/questions/510578/when-spliting-mp4s-with-ffmpeg-how-do-i-include-metadata
+		setVideoCopiarMetadados(true);
+
+		// Codec de audio
+		// Fonte: https://trac.ffmpeg.org/wiki/Encode/AAC
+		setAudioEncoderCodec("aac");
+		
+		// Qualidade do audio
+		setAudioAddExtraParameters("-b:a", "128k");
+		
+		// Move metadados do áudio para o início do arquivo, para acelerar o início da reprodução
+		setAudioMoverMetadadosParaInicio(true);
+	}
+
+	/**
+	 * Configurações para utilizar codec H264
+	 * 
+	 * @param presetSlow indica se o preset "slow" deve ser utilizado
+	 * @deprecated utilizar preferencialmente {@link #configurarVideoH265}
+	 */
+	private void configurarVideoH264(boolean presetSlow) {
+		
+		// Fonte: https://trac.ffmpeg.org/wiki/Encode/H.264
 		setVideoEncoderCodec("libx264");
 		
 		// Preset (qualidade x velocidade)
@@ -523,26 +563,38 @@ public class FFmpegCommand {
 		// Baseline: iPhone, iPhone 3G, old low-end Android devices, other embedded players
 		// Fonte: https://www.virag.si/2012/01/web-video-encoding-tutorial-with-ffmpeg-0-9/
 //		setVideoAddExtraParameters("-profile:v", "main");
-
-		// Adiciona metadados do vídeo original.
-		// Se esse parâmetro não existir, alguns metadados não são migrados para o vídeo 
-		// compactado, ex: "creation_time". Esses metadados, são importantes, por exemplo,
-		// para colocar o prefixo no nome do arquivo com o instante em que o vídeo foi gravado.
-		// A lista dos metadados de um arquivo pode ser consultada com "ffmpeg -i <arquivo>"
-		// Fonte: http://superuser.com/questions/510578/when-spliting-mp4s-with-ffmpeg-how-do-i-include-metadata
-		setVideoCopiarMetadados(true);
-
-		// Codec de audio
-		// Fonte: https://trac.ffmpeg.org/wiki/Encode/AAC
-		setAudioEncoderCodec("aac");
-		
-		// Qualidade do audio
-		setAudioAddExtraParameters("-b:a", "128k");
-		
-		// Move metadados do áudio para o início do arquivo, para acelerar o início da reprodução
-		setAudioMoverMetadadosParaInicio(true);
 	}
 
+	/**
+	 * Configurações para utilizar codec H265
+	 * 
+	 * @param presetSlow
+	 */
+	private void configurarVideoH265(boolean presetSlow) {
+		
+		// Fonte: https://trac.ffmpeg.org/wiki/Encode/H.265
+		setVideoEncoderCodec("libx265");
+
+		// Preset (qualidade x velocidade)
+		// TODO: Analisar e Otimizar
+		if (presetSlow) {
+			setVideoAddExtraParameters("-preset", "slow");
+//			setVideoAddExtraParameters("-preset", "slower");
+//			setVideoAddExtraParameters("-preset", "veryslow");
+		}
+
+		// Qualidade:
+		// TODO: Analisar e Otimizar
+		// Choose a CRF. The default is 28, and it should visually correspond to libx264
+		// video at CRF 23, but result in about half the file size. Other than that, 
+		// CRF works just like in x264.
+		// setVideoAddExtraParameters("-crf", "28"); // (padrao)
+
+		// Workaround para que miniaturas e preview do Finder funcionem corretamente no MacOS X
+		// Fonte: https://discussions.apple.com/thread/8091782
+		setVideoAddExtraParameters("-tag:v", "hvc1");
+	}
+	
 	/**
 	 * Configura todos os parâmetros para o padrão de vídeo e áudio utilizado pela 
 	 * Central Multimidia Pioneer AVH-288BT.
@@ -658,8 +710,13 @@ public class FFmpegCommand {
 	 */
 	public void setVideoMaximumResolution(Integer maxWidth, Integer maxHeight, Integer multiplo) throws IOException, InterruptedException, FFmpegException {
 		
+		if (this.inputFiles.size() != 1) {
+			// TODO: melhorar isso:
+			throw new IOException("Para reduzir a resolução, informe exatamente um vídeo.");
+		}
+		
 		// Pega a resolução original do vídeo
-		Point resolucao = getResolucaoVideo(new File(inputFile));
+		Point resolucao = getResolucaoVideo(new File(this.inputFiles.get(0)));
 		
 		// Calcula a relação ideal para restringir a resolução ao limite da tela da central
 		double relacaoWidth = resolucao.getX() / maxWidth;
