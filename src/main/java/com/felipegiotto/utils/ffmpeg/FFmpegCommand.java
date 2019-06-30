@@ -115,6 +115,15 @@ public class FFmpegCommand {
 			commands.add(videoEncoderCodec);
 		}
 		
+		// Qualidade CRF
+		if (qualidadeCrf != null) {
+			commands.add("-crf");
+			commands.add(qualidadeCrf.toString());
+		} else if (qualidadeCrfPadrao != null) {
+			commands.add("-crf");
+			commands.add(qualidadeCrfPadrao.toString());
+		}
+		
 		// Parametros extras para processar o video
 		if (videoExtraParameters != null) {
 			commands.addAll(videoExtraParameters);
@@ -526,6 +535,17 @@ public class FFmpegCommand {
 		setAudioMoverMetadadosParaInicio(true);
 	}
 
+	private Integer qualidadeCrfPadrao;
+	private Integer qualidadeCrf;
+	
+	public void setQualidadeCrfPadrao(Integer qualidadeCrfPadrao) {
+		this.qualidadeCrfPadrao = qualidadeCrfPadrao;
+	}
+	
+	public void setQualidadeCrf(Integer qualidadeCrf) {
+		this.qualidadeCrf = qualidadeCrf;
+	}
+	
 	/**
 	 * Configurações para utilizar codec H264
 	 * 
@@ -549,7 +569,8 @@ public class FFmpegCommand {
 		// and 51 is worst possible. A lower value is a higher quality and a subjectively 
 		// sane range is 18-28. Consider 18 to be visually lossless or nearly so: it should 
 		// look the same or nearly the same as the input but it isn't technically lossless.
-		setVideoAddExtraParameters("-crf", "24"); // (padrao)
+		setQualidadeCrfPadrao(24);
+//		setVideoAddExtraParameters("-crf", "24"); // (padrao)
 //		setVideoAddExtraParameters("-crf", "28"); // Qualidade um pouco menor, arquivo um pouco menor
 
 		// Perfil do H.264.
@@ -589,6 +610,7 @@ public class FFmpegCommand {
 		// video at CRF 23, but result in about half the file size. Other than that, 
 		// CRF works just like in x264.
 		// setVideoAddExtraParameters("-crf", "28"); // (padrao)
+		setQualidadeCrfPadrao(28); // Padrao
 
 		// Workaround para que miniaturas e preview do Finder funcionem corretamente no MacOS X
 		// Fonte: https://discussions.apple.com/thread/8091782

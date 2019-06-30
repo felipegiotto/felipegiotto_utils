@@ -189,17 +189,30 @@ public class FFmpegCommandTest {
 	
 	@Test
 	public void configurarPadraoCamerasFelipe() throws IOException {
+		
+		// H264
 		FFmpegCommand ffmpeg = criarObjetoMinimo();
 		ffmpeg.addInputFile("teste.avi");
 		ffmpeg.setOutputFile("teste_output.avi");
 		ffmpeg.configurarPadraoCamerasFelipe(false, true);
-		assertEquals("nice -n 15 src/test/resources/ffmpeg -i teste.avi -c:v libx264 -preset slow -crf 24 -map_metadata 0 -c:a aac -b:a 128k -movflags +faststart teste_output.avi", StringUtils.join(ffmpeg.buildParameters(), " "));
+		assertEquals("nice -n 15 src/test/resources/ffmpeg -i teste.avi -c:v libx264 -crf 24 -preset slow -map_metadata 0 -c:a aac -b:a 128k -movflags +faststart teste_output.avi", StringUtils.join(ffmpeg.buildParameters(), " "));
 
+		// H265
 		ffmpeg = criarObjetoMinimo();
 		ffmpeg.addInputFile("teste.avi");
 		ffmpeg.setOutputFile("teste_output.avi");
 		ffmpeg.configurarPadraoCamerasFelipe(true, false);
-		assertEquals("nice -n 15 src/test/resources/ffmpeg -i teste.avi -c:v libx265 -tag:v hvc1 -map_metadata 0 -c:a aac -b:a 128k -movflags +faststart teste_output.avi", StringUtils.join(ffmpeg.buildParameters(), " "));}
+		assertEquals("nice -n 15 src/test/resources/ffmpeg -i teste.avi -c:v libx265 -crf 28 -tag:v hvc1 -map_metadata 0 -c:a aac -b:a 128k -movflags +faststart teste_output.avi", StringUtils.join(ffmpeg.buildParameters(), " "));
+		
+		// H265 com qualidade CRF=30
+		ffmpeg = criarObjetoMinimo();
+		ffmpeg.addInputFile("teste.avi");
+		ffmpeg.setOutputFile("teste_output.avi");
+		ffmpeg.configurarPadraoCamerasFelipe(true, false);
+		ffmpeg.setQualidadeCrf(30);
+		assertEquals("nice -n 15 src/test/resources/ffmpeg -i teste.avi -c:v libx265 -crf 30 -tag:v hvc1 -map_metadata 0 -c:a aac -b:a 128k -movflags +faststart teste_output.avi", StringUtils.join(ffmpeg.buildParameters(), " "));
+		
+	}
 
 	@Test
 	public void configurarPadraoCentralMultimidia() throws IOException {
