@@ -229,10 +229,17 @@ public class FFmpegCommand {
 		}
 		
 		// Parametros extras para processar o áudio (somente se estiver utilizando ENCODE)
-		if (audioExtraParameters != null) {
-			if (audioEncoderCodec != null && !ENCODER_COPY.equals(audioEncoderCodec)) {
+		boolean recompactarAudio = audioEncoderCodec != null && !ENCODER_COPY.equals(audioEncoderCodec);
+		if (recompactarAudio) {
+			if (qualidadeAudio != null) {
+				commands.add("-b:a");
+				commands.add(qualidadeAudio);
+			}
+			if (audioExtraParameters != null) {
 				commands.addAll(audioExtraParameters);
-			} else {
+			}
+		} else {
+			if (audioExtraParameters != null) {
 				LOGGER.warn("Foram definidos parâmetros de processamento de áudio, mas o áudio não está sendo reprocessado. Os parâmetros serão ignorados. audioEncoderCodec='" + audioEncoderCodec + "', audioExtraParameters='" + audioExtraParameters + "'");
 			}
 		}
@@ -529,7 +536,7 @@ public class FFmpegCommand {
 		setAudioEncoderCodec("aac");
 		
 		// Qualidade do audio
-		setAudioAddExtraParameters("-b:a", "128k");
+		setQualidadeAudio("128k");
 		
 		// Move metadados do áudio para o início do arquivo, para acelerar o início da reprodução
 		setAudioMoverMetadadosParaInicio(true);
@@ -544,6 +551,11 @@ public class FFmpegCommand {
 	
 	public void setQualidadeCrf(Integer qualidadeCrf) {
 		this.qualidadeCrf = qualidadeCrf;
+	}
+	
+	private String qualidadeAudio;
+	public void setQualidadeAudio(String qualidadeAudio) {
+		this.qualidadeAudio = qualidadeAudio;
 	}
 	
 	/**
