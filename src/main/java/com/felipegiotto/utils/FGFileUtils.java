@@ -83,6 +83,14 @@ public class FGFileUtils {
 			return f;
 		}
 
+		// Tenta encontrar removendo aspas simples do início e do final, que acontece ao "Colar nomes de arquivos" no Ubuntu
+		if (caminho.startsWith("'") && caminho.endsWith("'")) {
+			f = new File(caminho.substring(1, caminho.length()-1));
+			if (f.exists()) {
+				return f;
+			}
+		}
+		
 		if (obrigatorio) {
 			throw new FileNotFoundException("Arquivo não existe: " + caminho);
 		} else {

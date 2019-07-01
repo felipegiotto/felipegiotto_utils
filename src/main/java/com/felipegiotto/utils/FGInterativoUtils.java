@@ -77,32 +77,48 @@ public class FGInterativoUtils {
 	public static int perguntarOpcoesParaUsuario(String tituloPergunta, String... opcoes) {
 		return perguntarOpcoesParaUsuario(tituloPergunta, false, opcoes);
 	}
+	
+	public static boolean perguntarSimOuNaoParaUsuario(String pergunta) {
+		return perguntarSimOuNaoParaUsuario(pergunta, null);
+	}
+	
 	/**
 	 * Faz uma pergunta para o usuário, mostrando uma série de opções. 
 	 * Em seguida, pede para que o usuário informe o número da opção selecionada.
 	 * 
 	 * @param pergunta
-	 * @param opcoes
+	 * @param valorPadrao : se informado, indica o valor padrão se o usuário simplesmente pressionar ENTER. Se não informado, o usuário será obrigado a digitar S ou N.
 	 * @return
 	 */
-	public static boolean perguntarSimOuNaoParaUsuario(String pergunta) {
+	public static boolean perguntarSimOuNaoParaUsuario(String pergunta, Boolean valorPadrao) {
 		
 		// Faz um loop até que o usuário responda SIM ou NAO
 		while(true) {
 			
-			// Mostra a pergunta para o usuário
-			System.out.println("");
-			System.out.println(pergunta + " (S/N)");
+			// Mostra a pergunta e as opções para o usuário
+			StringBuilder mensagem = new StringBuilder("\n" + pergunta + " (S/N");
+			if (valorPadrao != null) {
+				mensagem.append(" - Padrão=");
+				mensagem.append(valorPadrao ? "S" : "N");
+			}
+			mensagem.append(")");
+			System.out.println(mensagem);
 	
 			// Identifica o item selecionado pelo usuário.
 			String resposta = aguardarRespostaUsuario();
 			if (resposta != null) {
 				resposta = resposta.toUpperCase();
-				if ("S".equals(resposta)) {
+				if ("S".equals(resposta) || "Y".equals(resposta)) {
 					return true;
+					
 				} else if ("N".equals(resposta)) {
 					return false;
+					
 				}
+			}
+			
+			if (valorPadrao != null) {
+				return valorPadrao;
 			}
 			System.out.println("Resposta inválida! Responda com 'S' ou 'N'.");
 		}
