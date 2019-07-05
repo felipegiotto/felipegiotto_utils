@@ -29,16 +29,25 @@ public class FGInterativoUtils {
 	/**
 	 * Aguarda uma resposta do usuário (seguida de enter) na "stdin"
 	 * 
-	 * @return
+	 * @return string digitada pelo usuário ou NULL se ele deixou em branco.
 	 */
 	public static String aguardarRespostaUsuario() {
+		return aguardarRespostaUsuario(null);
+	}
+	
+	/**
+	 * Aguarda uma resposta do usuário (seguida de enter) na "stdin"
+	 * 
+	 * @return string digitada pelo usuário ou o parâmetro "valorPadrao" se ele deixou em branco.
+	 */
+	public static String aguardarRespostaUsuario(String valorPadrao) {
 		
 		// Mantém scanner aberto, pois senão não dá para chamar mais de uma vez
 		@SuppressWarnings("resource")
 		Scanner scanner = new Scanner(System.in);
 		String line = scanner.nextLine();
 		if (StringUtils.isBlank(line)) {
-			return null;
+			return valorPadrao;
 		} else {
 			return line;
 		}
@@ -67,7 +76,7 @@ public class FGInterativoUtils {
 		}
 
 		// Identifica o item selecionado pelo usuário.
-		int respostaInt = perguntarNumeroInteiroParaUsuario(pergunta.toString(), (numero) -> (numero >= 1 && numero <= opcoes.length) || (numero == 0 && exibirOpcaoVoltar));
+		int respostaInt = perguntarNumeroInteiroParaUsuario(pergunta.toString(), false, (numero) -> (numero >= 1 && numero <= opcoes.length) || (numero == 0 && exibirOpcaoVoltar));
 		if (respostaInt != 0) {
 			LOGGER.info("Resposta: " + opcoes[respostaInt-1]);
 		}
@@ -132,14 +141,18 @@ public class FGInterativoUtils {
 	 * Faz uma pergunta para o usuário, aceitando somente números inteiros como resposta
 	 * 
 	 * @param pergunta
+	 * @param aceitarNull : permite aceitar resposta em branco (será retornado null)
 	 * @param aceitarNumero : permite definir uma regra de aceite. Utilizar lambda expression, ex: "(numero) -> numero > 0"
 	 * @return
 	 */
-	public static int perguntarNumeroInteiroParaUsuario(String pergunta, AceitarNumero aceitarNumero) {
+	public static Integer perguntarNumeroInteiroParaUsuario(String pergunta, boolean aceitarBranco, AceitarNumero aceitarNumero) {
 		while (true) {
 			System.out.println("");
 			System.out.println(pergunta);
 			String resposta = aguardarRespostaUsuario();
+			if (resposta == null && aceitarBranco) {
+				return null;
+			}
 			try {
 				int numero = Integer.parseInt(resposta);
 				if (aceitarNumero != null && !aceitarNumero.aceitar(numero)) {
@@ -159,7 +172,7 @@ public class FGInterativoUtils {
 	 * @return
 	 */
 	public static int perguntarNumeroInteiroParaUsuario(String pergunta) {
-		return perguntarNumeroInteiroParaUsuario(pergunta, null);
+		return perguntarNumeroInteiroParaUsuario(pergunta, false, null);
 	}
 	
 	/**

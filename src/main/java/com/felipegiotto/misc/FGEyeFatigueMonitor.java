@@ -35,7 +35,7 @@ public class FGEyeFatigueMonitor {
 	private JButton button;
 
 	public static void main(String[] args) throws InterruptedException {
-		int minutos = FGInterativoUtils.perguntarNumeroInteiroParaUsuario("Qual o intervalo (em minutos) entre cada pausa?", (numero) -> numero > 0);
+		int minutos = FGInterativoUtils.perguntarNumeroInteiroParaUsuario("Qual o intervalo (em minutos) entre cada pausa?", false, (numero) -> numero > 0);
 		FGEyeFatigueMonitor m = new FGEyeFatigueMonitor(minutos);
 		m.start();
 	}
