@@ -781,6 +781,9 @@ public class FFmpegCommand {
 		comandos.add("-i");
 		comandos.add(path);
 		
+		// Oculta informações inúteis, como versões das bibliotecas
+		comandos.add("-hide_banner");
+		
 		ProcessBuilder pb = new ProcessBuilder(comandos);
 		Process p = pb.start();
 		
