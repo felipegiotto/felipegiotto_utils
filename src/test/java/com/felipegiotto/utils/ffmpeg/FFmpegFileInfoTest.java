@@ -49,6 +49,13 @@ public class FFmpegFileInfoTest {
 		
 		// Resolução do vídeo Full HD
 		assertEquals(new Point(1920, 1080), fileInfo.getVideoResolution());
+		
+		// Define a resolução máxima do vídeo (700 x 500) com múltiplo de 16, e mantendo 
+		// a mesma proporção do vídeo de entrada, que deverá resultar em 688x384
+		FFmpegParameters parameters = new FFmpegParameters();
+		parameters.setVideoMaxResolutionFromFile(700, 500, 16, fileInfo);
+		assertEquals(688, parameters.getVideoResolutionWidth().intValue());
+		assertEquals(384, parameters.getVideoResolutionHeight().intValue());
 	}
 	
 	@Test
@@ -59,6 +66,13 @@ public class FFmpegFileInfoTest {
 		
 		// Resolução do vídeo Full HD
 		assertEquals(new Point(1620, 1080), fileInfo.getVideoResolution());
+		
+		// Define a resolução máxima do vídeo (200 x 200) mantendo 
+		// a mesma proporção do vídeo de entrada, que deverá resultar em 200x133
+		FFmpegParameters parameters = new FFmpegParameters();
+		parameters.setVideoMaxResolutionFromFile(200, 200, null, fileInfo);
+		assertEquals(200, parameters.getVideoResolutionWidth().intValue());
+		assertEquals(133, parameters.getVideoResolutionHeight().intValue());
 	}
 
 	@Test
@@ -101,7 +115,7 @@ public class FFmpegFileInfoTest {
 		assertEquals(new Point(568, 320), fileInfo.getVideoResolution());
 	}
 
-	private FFmpegFileInfo getFileInfoComCache(String arquivoCache) throws Exception {
+	public static FFmpegFileInfo getFileInfoComCache(String arquivoCache) throws Exception {
 		File file = new File("src/test/resources/FFmpegFileInfoTest/" + arquivoCache);
 		FFmpegFileInfo fileInfo = new FFmpegFileInfo(file);
 		fileInfo.cacheFileInfo = FileUtils.readLines(file, StandardCharsets.UTF_8.toString());

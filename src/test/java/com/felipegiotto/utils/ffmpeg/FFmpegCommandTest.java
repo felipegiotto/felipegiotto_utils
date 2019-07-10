@@ -2,10 +2,8 @@ package com.felipegiotto.utils.ffmpeg;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-import java.awt.Point;
 import java.io.File;
 import java.io.IOException;
 
@@ -22,8 +20,8 @@ public class FFmpegCommandTest {
 	
 	private FFmpegCommand criarObjetoMinimo() {
 		FFmpegCommand ffmpeg = new FFmpegCommand();
-		ffmpeg.setAudioMoverMetadadosParaInicio(false);
-		ffmpeg.setVideoCopiarMetadados(false);
+		ffmpeg.getParameters().setAudioMoverMetadadosParaInicio(false);
+		ffmpeg.getParameters().setVideoCopiarMetadados(false);
 		return ffmpeg;
 	}
 	
@@ -49,8 +47,8 @@ public class FFmpegCommandTest {
 		FFmpegCommand ffmpeg = criarObjetoMinimo();
 		ffmpeg.addInputFile("entrada.avi");
 		ffmpeg.setOutputFile("saida.avi");
-		ffmpeg.setTempoInicial("00:00:10");
-		ffmpeg.setTempoFinal("00:00:20");
+		ffmpeg.getParameters().setTempoInicial("00:00:10");
+		ffmpeg.getParameters().setTempoFinal("00:00:20");
 		assertEquals("src/test/resources/ffmpeg -i entrada.avi -ss 00:00:10 -to 00:00:20 saida.avi", StringUtils.join(ffmpeg.buildParameters(), " "));
 	}
 	
@@ -59,8 +57,8 @@ public class FFmpegCommandTest {
 		FFmpegCommand ffmpeg = criarObjetoMinimo();
 		ffmpeg.addInputFile("entrada.avi");
 		ffmpeg.setOutputFile("saida.avi");
-		ffmpeg.setVideoEncoderCodec("libx264");
-		ffmpeg.setVideoAddExtraParameters("-preset", "slow");
+		ffmpeg.getParameters().setVideoEncoderCodec("libx264");
+		ffmpeg.getParameters().setVideoAddExtraParameters("-preset", "slow");
 		assertEquals("src/test/resources/ffmpeg -i entrada.avi -c:v libx264 -preset slow saida.avi", StringUtils.join(ffmpeg.buildParameters(), " "));
 	}
 	
@@ -70,7 +68,7 @@ public class FFmpegCommandTest {
 		ffmpeg.addInputFile("entrada1.avi");
 		ffmpeg.addInputFile("entrada2.avi");
 		ffmpeg.setOutputFile("saida.avi");
-		ffmpeg.setVideoEncoderCodec("libx264");
+		ffmpeg.getParameters().setVideoEncoderCodec("libx264");
 		assertEquals("src/test/resources/ffmpeg -i entrada1.avi -i entrada2.avi -filter_complex concat=n=2:v=1:a=1 -c:v libx264 saida.avi", StringUtils.join(ffmpeg.buildParameters(), " "));
 	}
 	
@@ -79,18 +77,18 @@ public class FFmpegCommandTest {
 		FFmpegCommand ffmpeg = criarObjetoMinimo();
 		ffmpeg.addInputFile("entrada.avi");
 		ffmpeg.setOutputFile("saida.avi");
-		ffmpeg.setVideoEncoderCodec("libx264");
+		ffmpeg.getParameters().setVideoEncoderCodec("libx264");
 		
 		// Tamanho definido
-		ffmpeg.setVideoResolution(200, 300);
+		ffmpeg.getParameters().setVideoResolution(200, 300);
 		assertEquals("src/test/resources/ffmpeg -i entrada.avi -c:v libx264 -vf scale=w=200:h=300 saida.avi", StringUtils.join(ffmpeg.buildParameters(), " "));
 		
 		// Somente largura
-		ffmpeg.setVideoResolution(200, null);
+		ffmpeg.getParameters().setVideoResolution(200, null);
 		assertEquals("src/test/resources/ffmpeg -i entrada.avi -c:v libx264 -vf scale=200:-1 saida.avi", StringUtils.join(ffmpeg.buildParameters(), " "));
 		
 		// Somente altura
-		ffmpeg.setVideoResolution(null, 300);
+		ffmpeg.getParameters().setVideoResolution(null, 300);
 		assertEquals("src/test/resources/ffmpeg -i entrada.avi -c:v libx264 -vf scale=-1:300 saida.avi", StringUtils.join(ffmpeg.buildParameters(), " "));
 	}
 	
@@ -99,14 +97,14 @@ public class FFmpegCommandTest {
 		FFmpegCommand ffmpeg = criarObjetoMinimo();
 		ffmpeg.addInputFile("entrada.avi");
 		ffmpeg.setOutputFile("saida.avi");
-		ffmpeg.setVideoEncoderCodec("libx264");
-//		ffmpeg.setGanhoLuminosidade(2.0); // Deixa vídeo mais claro
-		ffmpeg.setLuminosidadeMaisClara(true);
+		ffmpeg.getParameters().setVideoEncoderCodec("libx264");
+//		ffmpeg.getParameters().setGanhoLuminosidade(2.0); // Deixa vídeo mais claro
+		ffmpeg.getParameters().setLuminosidadeMaisClara(true);
 //		assertEquals("src/test/resources/ffmpeg -i entrada.avi -c:v libx264 -vf lutyuv=y=val*2.0 saida.avi", StringUtils.join(ffmpeg.buildParameters(), " "));
 		assertEquals("src/test/resources/ffmpeg -i entrada.avi -c:v libx264 -vf curves=r='0/0.1 0.3/0.5 1/1':g='0/0.1 0.3/0.5 1/1':b='0/0.1 0.3/0.5 1/1' saida.avi", StringUtils.join(ffmpeg.buildParameters(), " "));
 		
-//		ffmpeg.setGanhoLuminosidade(null); // Retorna ao padrao
-		ffmpeg.setLuminosidadeMaisClara(false); // Retorna ao padrao
+//		ffmpeg.getParameters().setGanhoLuminosidade(null); // Retorna ao padrao
+		ffmpeg.getParameters().setLuminosidadeMaisClara(false); // Retorna ao padrao
 		assertEquals("src/test/resources/ffmpeg -i entrada.avi -c:v libx264 saida.avi", StringUtils.join(ffmpeg.buildParameters(), " "));
 	}
 	
@@ -115,12 +113,12 @@ public class FFmpegCommandTest {
 		FFmpegCommand ffmpeg = criarObjetoMinimo();
 		ffmpeg.addInputFile("entrada.avi");
 		ffmpeg.setOutputFile("saida.avi");
-		ffmpeg.setVideoRotation(90);
+		ffmpeg.getParameters().setVideoRotation(90);
 		
-		ffmpeg.setVideoEncoderCopy();
+		ffmpeg.getParameters().setVideoEncoderCopy();
 		assertEquals("src/test/resources/ffmpeg -i entrada.avi -c:v copy -metadata:s:v:0 rotate=90 saida.avi", StringUtils.join(ffmpeg.buildParameters(), " "));
 		
-		ffmpeg.setVideoEncoderCodec("libx264");
+		ffmpeg.getParameters().setVideoEncoderCodec("libx264");
 		assertEquals("src/test/resources/ffmpeg -i entrada.avi -c:v libx264 -vf transpose=2 saida.avi", StringUtils.join(ffmpeg.buildParameters(), " "));
 	}
 	
@@ -129,9 +127,9 @@ public class FFmpegCommandTest {
 		FFmpegCommand ffmpeg = criarObjetoMinimo();
 		ffmpeg.addInputFile("entrada.avi");
 		ffmpeg.setOutputFile("saida.avi");
-		ffmpeg.setVideoRotationHorizontalFlip(true);
+		ffmpeg.getParameters().setVideoRotationHorizontalFlip(true);
 		
-		ffmpeg.setVideoEncoderCodec("libx264");
+		ffmpeg.getParameters().setVideoEncoderCodec("libx264");
 		assertEquals("src/test/resources/ffmpeg -i entrada.avi -c:v libx264 -vf hflip saida.avi", StringUtils.join(ffmpeg.buildParameters(), " "));
 		
 		// Se encontrar uma forma de fazer "flip" sem reprocessar o vídeo, implementar e habilitar o teste
@@ -144,8 +142,8 @@ public class FFmpegCommandTest {
 		FFmpegCommand ffmpeg = criarObjetoMinimo();
 		ffmpeg.addInputFile("entrada.avi");
 		ffmpeg.setOutputFile("saida.avi");
-		ffmpeg.setVideoEncoderCopy();
-		ffmpeg.setAudioEncoderCopy();
+		ffmpeg.getParameters().setVideoEncoderCopy();
+		ffmpeg.getParameters().setAudioEncoderCopy();
 		assertEquals("src/test/resources/ffmpeg -i entrada.avi -c:v copy -c:a copy saida.avi", StringUtils.join(ffmpeg.buildParameters(), " "));
 	}
 	
@@ -154,10 +152,10 @@ public class FFmpegCommandTest {
 		FFmpegCommand ffmpeg = criarObjetoMinimo();
 		ffmpeg.addInputFile("teste.avi");
 		ffmpeg.setOutputFile("teste_output.avi");
-		ffmpeg.setVideoCopiarMetadados(true);
+		ffmpeg.getParameters().setVideoCopiarMetadados(true);
 		assertEquals("src/test/resources/ffmpeg -i teste.avi -map_metadata 0 teste_output.avi", StringUtils.join(ffmpeg.buildParameters(), " "));
 		
-		ffmpeg.setVideoCopiarMetadados(false);
+		ffmpeg.getParameters().setVideoCopiarMetadados(false);
 		assertEquals("src/test/resources/ffmpeg -i teste.avi teste_output.avi", StringUtils.join(ffmpeg.buildParameters(), " "));
 	}
 	
@@ -166,12 +164,12 @@ public class FFmpegCommandTest {
 		FFmpegCommand ffmpeg = criarObjetoMinimo();
 		ffmpeg.addInputFile("entrada.avi");
 		ffmpeg.setOutputFile("saida.avi");
-		ffmpeg.setAudioEncoderCodec("aac");
-		ffmpeg.setAudioAddExtraParameters("-b:a", "128k");
+		ffmpeg.getParameters().setAudioEncoderCodec("aac");
+		ffmpeg.getParameters().setAudioAddExtraParameters("-b:a", "128k");
 		assertEquals("src/test/resources/ffmpeg -i entrada.avi -c:a aac -b:a 128k saida.avi", StringUtils.join(ffmpeg.buildParameters(), " "));
 		
 		// Se, agora, mudar o áudio para "copy", também deve zerar as informações extras de áudio
-		ffmpeg.setAudioEncoderCopy();
+		ffmpeg.getParameters().setAudioEncoderCopy();
 		assertEquals("src/test/resources/ffmpeg -i entrada.avi -c:a copy saida.avi", StringUtils.join(ffmpeg.buildParameters(), " "));
 	}
 	
@@ -180,10 +178,10 @@ public class FFmpegCommandTest {
 		FFmpegCommand ffmpeg = criarObjetoMinimo();
 		ffmpeg.addInputFile("teste.avi");
 		ffmpeg.setOutputFile("teste_output.avi");
-		ffmpeg.setAudioMoverMetadadosParaInicio(true);
+		ffmpeg.getParameters().setAudioMoverMetadadosParaInicio(true);
 		assertEquals("src/test/resources/ffmpeg -i teste.avi -movflags +faststart teste_output.avi", StringUtils.join(ffmpeg.buildParameters(), " "));
 		
-		ffmpeg.setAudioMoverMetadadosParaInicio(false);
+		ffmpeg.getParameters().setAudioMoverMetadadosParaInicio(false);
 		assertEquals("src/test/resources/ffmpeg -i teste.avi teste_output.avi", StringUtils.join(ffmpeg.buildParameters(), " "));
 	}
 	
@@ -194,23 +192,23 @@ public class FFmpegCommandTest {
 		FFmpegCommand ffmpeg = criarObjetoMinimo();
 		ffmpeg.addInputFile("teste.avi");
 		ffmpeg.setOutputFile("teste_output.avi");
-		ffmpeg.configurarPadraoCamerasFelipe(false, true);
-		assertEquals("nice -n 15 src/test/resources/ffmpeg -i teste.avi -c:v libx264 -crf 24 -preset slow -map_metadata 0 -c:a aac -b:a 128k -movflags +faststart teste_output.avi", StringUtils.join(ffmpeg.buildParameters(), " "));
+		ffmpeg.getParameters().configurarPadraoCamerasFelipe(false, true);
+		assertEquals("src/test/resources/ffmpeg -i teste.avi -c:v libx264 -crf 24 -preset slow -map_metadata 0 -c:a aac -b:a 128k -movflags +faststart teste_output.avi", StringUtils.join(ffmpeg.buildParameters(), " "));
 
 		// H265
 		ffmpeg = criarObjetoMinimo();
 		ffmpeg.addInputFile("teste.avi");
 		ffmpeg.setOutputFile("teste_output.avi");
-		ffmpeg.configurarPadraoCamerasFelipe(true, false);
-		assertEquals("nice -n 15 src/test/resources/ffmpeg -i teste.avi -c:v libx265 -crf 28 -tag:v hvc1 -map_metadata 0 -c:a aac -b:a 128k -movflags +faststart teste_output.avi", StringUtils.join(ffmpeg.buildParameters(), " "));
+		ffmpeg.getParameters().configurarPadraoCamerasFelipe(true, false);
+		assertEquals("src/test/resources/ffmpeg -i teste.avi -c:v libx265 -crf 28 -tag:v hvc1 -map_metadata 0 -c:a aac -b:a 128k -movflags +faststart teste_output.avi", StringUtils.join(ffmpeg.buildParameters(), " "));
 		
 		// H265 com qualidade CRF=30
 		ffmpeg = criarObjetoMinimo();
 		ffmpeg.addInputFile("teste.avi");
 		ffmpeg.setOutputFile("teste_output.avi");
-		ffmpeg.configurarPadraoCamerasFelipe(true, false);
-		ffmpeg.setQualidadeCrf(30);
-		assertEquals("nice -n 15 src/test/resources/ffmpeg -i teste.avi -c:v libx265 -crf 30 -tag:v hvc1 -map_metadata 0 -c:a aac -b:a 128k -movflags +faststart teste_output.avi", StringUtils.join(ffmpeg.buildParameters(), " "));
+		ffmpeg.getParameters().configurarPadraoCamerasFelipe(true, false);
+		ffmpeg.getParameters().setQualidadeCrf(30);
+		assertEquals("src/test/resources/ffmpeg -i teste.avi -c:v libx265 -crf 30 -tag:v hvc1 -map_metadata 0 -c:a aac -b:a 128k -movflags +faststart teste_output.avi", StringUtils.join(ffmpeg.buildParameters(), " "));
 		
 	}
 
@@ -219,8 +217,8 @@ public class FFmpegCommandTest {
 		FFmpegCommand ffmpeg = criarObjetoMinimo();
 		ffmpeg.addInputFile("src/test/resources/video_1280x544.mov");
 		ffmpeg.setOutputFile("teste_output.avi");
-		ffmpeg.configurarPadraoCentralMultimidia(true);
-		assertEquals("nice -n 15 src/test/resources/ffmpeg -i src/test/resources/video_1280x544.mov -c:v libxvid -qscale:v 10 -vf scale=w=720:h=304 -c:a libmp3lame -qscale:a 5 teste_output.avi", StringUtils.join(ffmpeg.buildParameters(), " "));
+		ffmpeg.getParameters().configurarPadraoCentralMultimidia(new File("src/test/resources/video_1280x544.mov"));
+		assertEquals("src/test/resources/ffmpeg -i src/test/resources/video_1280x544.mov -c:v libxvid -qscale:v 10 -vf scale=w=720:h=304 -c:a libmp3lame -qscale:a 5 teste_output.avi", StringUtils.join(ffmpeg.buildParameters(), " "));
 	}
 
 	@Test
@@ -239,11 +237,11 @@ public class FFmpegCommandTest {
 		//TODO: sobrescrever arquivo original, porque se ja existir, trava
 		prepararCaminhoFFmpeg();
 		FFmpegCommand f = new FFmpegCommand();
-		f.setVideoEncoderCopy();
+		f.getParameters().setVideoEncoderCopy();
 		f.addInputFile(new File("/Users/taeta/Desktop/Lixo/lixo.mov"));
-		f.setVideoRotationVerticalFlip(true);
+		f.getParameters().setVideoRotationVerticalFlip(true);
 		f.setOutputFile(new File("/Users/taeta/Desktop/Lixo/lixo_out.mov"));
-		f.setTempoFinal("00:00:03");
+		f.getParameters().setTempoFinal("00:00:03");
 		f.runAndWait(true);
 	}
 
