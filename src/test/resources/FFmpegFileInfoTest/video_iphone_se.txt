@@ -1,0 +1,30 @@
+Input #0, mov,mp4,m4a,3gp,3g2,mj2, from '/Users/taeta/Pictures/Backup Cameras/iPhone SE/1_IMAGE_CAPTURE/IMG_3059.MOV':
+  Metadata:
+    major_brand     : qt  
+    minor_version   : 0
+    compatible_brands: qt  
+    creation_time   : 2019-01-04T21:30:43.000000Z
+    com.apple.quicktime.location.ISO6709: -30.0935-051.2353+010.908/
+    com.apple.quicktime.make: Apple
+    com.apple.quicktime.model: iPhone SE
+    com.apple.quicktime.software: 12.1
+    com.apple.quicktime.creationdate: 2019-01-04T19:30:43-0200
+  Duration: 00:00:38.46, start: 0.000000, bitrate: 15579 kb/s
+    Stream #0:0(und): Video: h264 (High) (avc1 / 0x31637661), yuv420p(tv, bt709), 1920x1080, 15470 kb/s, 29.98 fps, 29.97 tbr, 600 tbn, 1200 tbc (default)
+    Metadata:
+      creation_time   : 2019-01-04T21:30:43.000000Z
+      handler_name    : Core Media Video
+      encoder         : H.264
+    Stream #0:1(und): Audio: aac (LC) (mp4a / 0x6134706D), 44100 Hz, mono, fltp, 97 kb/s (default)
+    Metadata:
+      creation_time   : 2019-01-04T21:30:43.000000Z
+      handler_name    : Core Media Audio
+    Stream #0:2(und): Data: none (mebx / 0x7862656D), 1 kb/s (default)
+    Metadata:
+      creation_time   : 2019-01-04T21:30:43.000000Z
+      handler_name    : Core Media Metadata
+    Stream #0:3(und): Data: none (mebx / 0x7862656D), 0 kb/s (default)
+    Metadata:
+      creation_time   : 2019-01-04T21:30:43.000000Z
+      handler_name    : Core Media Metadata
+At least one output file must be specified

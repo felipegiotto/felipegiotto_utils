@@ -34,6 +34,10 @@ public class FFmpegCommand {
 	public static void setFFmpegPath(String ffmpegPath) {
 		FFmpegPath = ffmpegPath;
 	}
+	
+	public static String getFFmpegPath() {
+		return FFmpegPath;
+	}
 
 	/**
 	 * Executa o ffmpeg, espera o término e confere o retorno do processo.
@@ -774,6 +778,8 @@ public class FFmpegCommand {
 		}
 	}
 	
+	// Usar FFmpegFileInfo.getFullFileInfo
+	@Deprecated
 	public static List<String> getFileInfo(String path) throws IOException {
 		List<String> comandos = new ArrayList<>();
 		
@@ -808,6 +814,8 @@ public class FFmpegCommand {
 		return saida;
 	}
 
+	// Usar FFmpegFileInfo
+	@Deprecated
 	public static Point getResolucaoVideo(File input) throws IOException, InterruptedException, FFmpegException {
 		ArrayList<String> commands = new ArrayList<>();
 		
@@ -838,6 +846,8 @@ public class FFmpegCommand {
 		}
 	}
 	
+	// Usar FFmpegFileInfo
+	@Deprecated
 	public static int getDuracaoSegundosVideo(File input) throws IOException, InterruptedException, FFmpegException {
 		ArrayList<String> commands = new ArrayList<>();
 		

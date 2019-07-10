@@ -1,0 +1,18 @@
+Input #0, mov,mp4,m4a,3gp,3g2,mj2, from '/Users/taeta/Pictures/Backup Cameras/iPhone X/1_IMAGE_CAPTURE_X/2019-05-04-13-22-49 - IMG_1921_compact_.mov':
+  Metadata:
+    major_brand     : qt  
+    minor_version   : 512
+    compatible_brands: qt  
+    creation_time   : 2019-05-04T16:22:49.000000Z
+    encoder         : Lavf58.15.100
+  Duration: 00:00:55.99, start: 0.000000, bitrate: 4544 kb/s
+    Stream #0:0(eng): Video: h264 (High) (avc1 / 0x31637661), yuv420p, 1920x1080, 4437 kb/s, 60 fps, 60 tbr, 15360 tbn, 120 tbc (default)
+    Metadata:
+      creation_time   : 2019-05-04T16:22:49.000000Z
+      handler_name    : VideoHandler
+      encoder         : Lavc58.19.102 libx264
+    Stream #0:1(eng): Audio: aac (LC) (mp4a / 0x6134706D), 44100 Hz, mono, fltp, 94 kb/s (default)
+    Metadata:
+      creation_time   : 2019-05-04T16:22:49.000000Z
+      handler_name    : SoundHandler
+At least one output file must be specified
