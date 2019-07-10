@@ -194,31 +194,28 @@ public class FFmpegFileInfo {
 		throw new FFmpegException(erro, StringUtils.join(getFullFileInfo(), "\n"));
 	}
 
-//	public static int getDuracaoSegundosVideo(File input) throws IOException, InterruptedException, FFmpegException {
-//		ArrayList<String> commands = new ArrayList<>();
-//		
-//		commands.add(FFmpegPath);
-//		commands.add("-i");
-//		commands.add(input.getAbsolutePath());
-//		
-//		Process proc = FGProcessUtils.executarComando(commands);
-//		try {
-//			FGStreamUtils.consomeStream(proc.getInputStream(), "");
-//			String out = IOUtils.toString(proc.getErrorStream(), Charset.defaultCharset());
-//			Pattern pResolucao = Pattern.compile("Duration: (\\d+):(\\d+):(\\d+)\\.");
-//			Matcher m = pResolucao.matcher(out);
-//			while (m.find()) {
-//				int horas = Integer.parseInt(m.group(1));
-//				int minutos = Integer.parseInt(m.group(2));
-//				int segundos = Integer.parseInt(m.group(3));
-//				return (3600 * horas) + (60 * minutos) + segundos; 
-//			}
-//			
-//			String erro = "Não foi possível identificar a duração do vídeo no arquivo " + input + "!";
-//			throw new FFmpegException(erro, out);
-//		} finally {
-//			proc.waitFor();
-//		}
-//	}
-
+	/**
+	 * Retorna a duração de um vídeo, em segundos.
+	 * 
+	 * @return
+	 * @throws FFmpegException
+	 * @throws IOException
+	 */
+	public float getVideoDurationSeconds() throws FFmpegException, IOException {
+	
+		for (String linha : getFullFileInfo()) {
+			Pattern pResolucao = Pattern.compile("Duration: (\\d+):(\\d+):(\\d+)\\.(\\d+)");
+			Matcher m = pResolucao.matcher(linha);
+			while (m.find()) {
+				int horas = Integer.parseInt(m.group(1));
+				int minutos = Integer.parseInt(m.group(2));
+				int segundos = Integer.parseInt(m.group(3));
+				float centesimos = Float.parseFloat(m.group(4));
+				return (3600 * horas) + (60 * minutos) + segundos + (centesimos/100); 
+			}
+		}
+		
+		String erro = "Não foi possível identificar a duração do vídeo no arquivo " + file + "!";
+		throw new FFmpegException(erro, StringUtils.join(getFullFileInfo(), "\n"));
+	}
 }

@@ -222,12 +222,6 @@ public class FFmpegCommandTest {
 	}
 
 	@Test
-	public void analisarDuracaoArquivoVideo() throws Exception {
-		File input = new File("src/test/resources/video_1280x544.mov");
-		assertEquals(2, FFmpegCommand.getDuracaoSegundosVideo(input));
-	}
-
-	@Test
 	public void isArquivoVideoTest() {
 		assertTrue(FFmpegCommand.isArquivoVideo("video.avi"));
 		assertFalse(FFmpegCommand.isArquivoVideo("imagem.jpg"));

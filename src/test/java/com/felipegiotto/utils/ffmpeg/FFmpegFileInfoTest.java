@@ -56,6 +56,9 @@ public class FFmpegFileInfoTest {
 		parameters.setVideoMaxResolutionFromFile(700, 500, 16, fileInfo);
 		assertEquals(688, parameters.getVideoResolutionWidth().intValue());
 		assertEquals(384, parameters.getVideoResolutionHeight().intValue());
+		
+		// Duração (em segundos) do vídeo
+		assertEquals(40.24, fileInfo.getVideoDurationSeconds(), 0.01);
 	}
 	
 	@Test
@@ -73,6 +76,9 @@ public class FFmpegFileInfoTest {
 		parameters.setVideoMaxResolutionFromFile(200, 200, null, fileInfo);
 		assertEquals(200, parameters.getVideoResolutionWidth().intValue());
 		assertEquals(133, parameters.getVideoResolutionHeight().intValue());
+		
+		// Duração (em segundos) do vídeo
+		assertEquals(26, fileInfo.getVideoDurationSeconds(), 0.01);
 	}
 
 	@Test
@@ -86,6 +92,9 @@ public class FFmpegFileInfoTest {
 		
 		// Resolução do vídeo Full HD
 		assertEquals(new Point(1920, 1080), fileInfo.getVideoResolution());
+
+		// Duração (em segundos) do vídeo
+		assertEquals(55.99, fileInfo.getVideoDurationSeconds(), 0.01);
 	}
 	
 	@Test
@@ -100,6 +109,9 @@ public class FFmpegFileInfoTest {
 		
 		// Resolução do vídeo Full HD
 		assertEquals(new Point(1920, 1080), fileInfo.getVideoResolution());
+
+		// Duração (em segundos) do vídeo
+		assertEquals(38.46, fileInfo.getVideoDurationSeconds(), 0.01);
 	}
 	
 	@Test
@@ -113,6 +125,9 @@ public class FFmpegFileInfoTest {
 		
 		// Resolução do vídeo
 		assertEquals(new Point(568, 320), fileInfo.getVideoResolution());
+
+		// Duração (em segundos) do vídeo
+		assertEquals(3670.98, fileInfo.getVideoDurationSeconds(), 0.01);
 	}
 
 	public static FFmpegFileInfo getFileInfoComCache(String arquivoCache) throws Exception {

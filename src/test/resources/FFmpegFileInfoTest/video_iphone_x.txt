@@ -4,7 +4,7 @@ Input #0, mov,mp4,m4a,3gp,3g2,mj2, from '/Users/taeta/Pictures/Backup Cameras/iP
     minor_version   : 0
     compatible_brands: qt  
     creation_time   : 2019-05-04T19:11:20.000000Z
-  Duration: 00:00:10.98, start: 0.000000, bitrate: 766 kb/s
+  Duration: 01:01:10.98, start: 0.000000, bitrate: 766 kb/s
     Stream #0:0(und): Audio: aac (LC) (mp4a / 0x6134706D), 44100 Hz, mono, fltp, 62 kb/s (default)
     Metadata:
       creation_time   : 2019-05-04T19:11:20.000000Z

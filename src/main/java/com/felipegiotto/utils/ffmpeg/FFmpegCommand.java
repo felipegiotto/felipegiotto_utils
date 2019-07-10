@@ -2,14 +2,10 @@ package com.felipegiotto.utils.ffmpeg;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
@@ -17,7 +13,6 @@ import org.apache.logging.log4j.Logger;
 
 import com.felipegiotto.utils.FGProcessUtils;
 import com.felipegiotto.utils.FGStreamUtils;
-import com.felipegiotto.utils.ffmpeg.util.FFmpegException;
 
 /**
  * Classe que monta uma linha de comando completa para chamar o "ffmpeg"
@@ -171,35 +166,6 @@ public class FFmpegCommand {
 	 */
 	public void setProcessNicePriority(Integer processNicePriority) {
 		this.processNicePriority = processNicePriority;
-	}
-	
-	// Usar FFmpegFileInfo
-	@Deprecated
-	public static int getDuracaoSegundosVideo(File input) throws IOException, InterruptedException, FFmpegException {
-		ArrayList<String> commands = new ArrayList<>();
-		
-		commands.add(FFmpegPath);
-		commands.add("-i");
-		commands.add(input.getAbsolutePath());
-		
-		Process proc = FGProcessUtils.executarComando(commands);
-		try {
-			FGStreamUtils.consomeStream(proc.getInputStream(), "");
-			String out = IOUtils.toString(proc.getErrorStream(), Charset.defaultCharset());
-			Pattern pResolucao = Pattern.compile("Duration: (\\d+):(\\d+):(\\d+)\\.");
-			Matcher m = pResolucao.matcher(out);
-			while (m.find()) {
-				int horas = Integer.parseInt(m.group(1));
-				int minutos = Integer.parseInt(m.group(2));
-				int segundos = Integer.parseInt(m.group(3));
-				return (3600 * horas) + (60 * minutos) + segundos; 
-			}
-			
-			String erro = "Não foi possível identificar a duração do vídeo no arquivo " + input + "!";
-			throw new FFmpegException(erro, out);
-		} finally {
-			proc.waitFor();
-		}
 	}
 	
 	public static boolean isArquivoVideo(String filename) {
