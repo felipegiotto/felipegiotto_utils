@@ -20,6 +20,7 @@ import org.apache.logging.log4j.Logger;
 
 import com.felipegiotto.utils.FGProcessUtils;
 import com.felipegiotto.utils.FGStreamUtils;
+import com.felipegiotto.utils.ffmpeg.util.FFmpegException;
 
 /**
  * Classe que monta uma linha de comando completa para chamar o "ffmpeg"

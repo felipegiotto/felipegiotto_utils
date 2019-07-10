@@ -1,4 +1,4 @@
-package com.felipegiotto.utils.ffmpeg;
+package com.felipegiotto.utils.ffmpeg.util;
 
 public class FFmpegException extends Exception {
 
