@@ -1,5 +1,6 @@
 package com.felipegiotto.utils.ffmpeg;
 
+import java.awt.Point;
 import java.io.File;
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -11,8 +12,11 @@ import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+
+import com.felipegiotto.utils.ffmpeg.util.FFmpegException;
 
 /**
  * Classe com funções adicionais utilizando ffmpeg, como por exemplo, leitura de metadados de arquivos.
@@ -165,6 +169,29 @@ public class FFmpegFileInfo {
 		ZonedDateTime zdt = ZonedDateTime.of(ldt, ZoneId.of("GMT"));
 		ldt = zdt.withZoneSameInstant(ZoneId.of("America/Sao_Paulo")).toLocalDateTime();
 		return ldt;
+	}
+
+	public Point getVideoResolution() throws FFmpegException, IOException {
+		
+		for (String linha: getFullFileInfo()) {
+			
+			// Ex: Stream #0:1(und): Video: h264 (Main) (avc1 / 0x31637661), yuv420p(tv, smpte170m/bt709/bt709), 568x320, 758 kb/s, 30 fps, 30 tbr, 600 tbn, 1200 tbc (default)
+			if (linha.contains("Stream") && linha.contains("Video")) {
+				Pattern pResolucao = Pattern.compile("(\\d+)x(\\d+)");
+				Matcher m = pResolucao.matcher(linha);
+				while (m.find()) {
+					int width = Integer.parseInt(m.group(1));
+					int height = Integer.parseInt(m.group(2));
+					if (width > 0 && height > 0) {
+						Point p = new Point(width, height);
+						return p;
+					}
+				}
+			}
+		}
+		
+		String erro = "Não foi possível identificar a resolução do vídeo no arquivo " + file + "!";
+		throw new FFmpegException(erro, StringUtils.join(getFullFileInfo(), "\n"));
 	}
 
 //	public static int getDuracaoSegundosVideo(File input) throws IOException, InterruptedException, FFmpegException {

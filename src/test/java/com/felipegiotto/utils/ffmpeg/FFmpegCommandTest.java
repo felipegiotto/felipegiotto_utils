@@ -224,15 +224,6 @@ public class FFmpegCommandTest {
 	}
 
 	@Test
-	public void analisarResolucaoArquivoVideo() throws Exception {
-		File input = new File("src/test/resources/video_1280x544.mov");
-		Point resolucao = FFmpegCommand.getResolucaoVideo(input);
-		assertNotNull(resolucao);
-		assertEquals(1280, resolucao.getX(), 0.001);
-		assertEquals(544, resolucao.getY(), 0.001);
-	}
-	
-	@Test
 	public void analisarDuracaoArquivoVideo() throws Exception {
 		File input = new File("src/test/resources/video_1280x544.mov");
 		assertEquals(2, FFmpegCommand.getDuracaoSegundosVideo(input));

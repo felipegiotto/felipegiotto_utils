@@ -1,1 +1,3 @@
 date            : 20171221
+
+Parametro perdido para confundir detector de resolucao: 1000x1000

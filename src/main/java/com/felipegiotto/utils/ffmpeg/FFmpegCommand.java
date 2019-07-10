@@ -7,7 +7,6 @@ import java.nio.charset.Charset;
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -755,7 +754,8 @@ public class FFmpegCommand {
 		}
 		
 		// Pega a resolução original do vídeo
-		Point resolucao = getResolucaoVideo(new File(this.inputFiles.get(0)));
+		FFmpegFileInfo fileInfo = new FFmpegFileInfo(new File(this.inputFiles.get(0)));
+		Point resolucao = fileInfo.getVideoResolution();
 		
 		// Calcula a relação ideal para restringir a resolução ao limite da tela da central
 		double relacaoWidth = resolucao.getX() / maxWidth;
@@ -776,74 +776,6 @@ public class FFmpegCommand {
 			}
 			LOGGER.debug("Resolucoes: entrada=" + resolucao.getX() + "x" + resolucao.getY() + ", saída=" + width + "x" + height);
 			setVideoResolution(width, height);
-		}
-	}
-	
-	// Usar FFmpegFileInfo.getFullFileInfo
-	@Deprecated
-	public static List<String> getFileInfo(String path) throws IOException {
-		List<String> comandos = new ArrayList<>();
-		
-		comandos.add(FFmpegPath);
-		comandos.add("-i");
-		comandos.add(path);
-		
-		// Oculta informações inúteis, como versões das bibliotecas
-		comandos.add("-hide_banner");
-		
-		ProcessBuilder pb = new ProcessBuilder(comandos);
-		Process p = pb.start();
-		
-		List<String> saida = new ArrayList<>();
-		
-		try (Scanner scanner = new Scanner(p.getErrorStream())) {
-			while (scanner.hasNextLine()) {
-				saida.add(scanner.nextLine());
-			}
-		}
-
-		// Aguarda o termino e verifica se ocorreu erro
-		try {
-			p.waitFor();
-		} catch (InterruptedException e) {
-			throw new IOException(e);
-		}
-		
-		// Processo retorna 1
-		// Auxiliar.confereRetornoProcesso(p);
-		
-		return saida;
-	}
-
-	// Usar FFmpegFileInfo
-	@Deprecated
-	public static Point getResolucaoVideo(File input) throws IOException, InterruptedException, FFmpegException {
-		ArrayList<String> commands = new ArrayList<>();
-		
-		commands.add(FFmpegPath);
-		commands.add("-i");
-		commands.add(input.getAbsolutePath());
-		
-		Process proc = FGProcessUtils.executarComando(commands);
-		try {
-			FGStreamUtils.consomeStream(proc.getInputStream(), "");
-			String out = IOUtils.toString(proc.getErrorStream(), Charset.defaultCharset());
-			Pattern pResolucao = Pattern.compile("(\\d+)x(\\d+)");
-			Matcher m = pResolucao.matcher(out);
-			while (m.find()) {
-				int width = Integer.parseInt(m.group(1));
-				int height = Integer.parseInt(m.group(2));
-				if (width > 0 && height > 0) {
-					Point p = new Point(width, height);
-					return p;
-				}
-			}
-			
-			String erro = "Não foi possível identificar a resolução do vídeo no arquivo " + input + "!";
-			throw new FFmpegException(erro, out);
-			
-		} finally {
-			proc.waitFor();
 		}
 	}
 	

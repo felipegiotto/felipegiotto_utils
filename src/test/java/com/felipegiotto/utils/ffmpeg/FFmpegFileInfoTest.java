@@ -1,7 +1,9 @@
 package com.felipegiotto.utils.ffmpeg;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
+import java.awt.Point;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -10,50 +12,26 @@ import java.time.LocalDateTime;
 import org.apache.commons.io.FileUtils;
 import org.junit.Test;
 
+import com.felipegiotto.utils.ffmpeg.util.FFmpegException;
+
 public class FFmpegFileInfoTest {
 
 	@Test
-	public void getCreationDateIphoneSEComHorarioVerao() throws IOException {
-		FFmpegFileInfo fileInfo = getFileInfoComCache("video_iphone_se.txt");
+	public void getDateYMD() throws Exception {
+		FFmpegFileInfo fileInfo = getFileInfoComCache("date_ymd.txt");
 		
-		// Como o horário já está no timezone correto, o parâmetro "ajustarTimeZone" não influencia
-		// creation_time   : 2019-01-04T21:30:43.000000Z
-		// com.apple.quicktime.creationdate: 2019-01-04T19:30:43-0200
-		assertEquals(LocalDateTime.of(2019, 1, 4, 19, 30, 43), fileInfo.getCreationDateTime(true));
-		assertEquals(LocalDateTime.of(2019, 1, 4, 19, 30, 43), fileInfo.getCreationDateTime(false));
+		// date            : 20171221
+		assertEquals(LocalDateTime.of(2017, 12, 21, 0, 0, 0), fileInfo.getCreationDateTime(false));
+		
+		try {
+			fileInfo.getVideoResolution();
+			fail("Não deveria ter conseguido ler resolução de vídeo (ver arquivo date_ymd.txt)");
+		} catch (FFmpegException ex) {
+		}
 	}
 	
 	@Test
-	public void getCreationDateIphoneX() throws IOException {
-		FFmpegFileInfo fileInfo = getFileInfoComCache("video_iphone_x.txt");
-		
-		// Timestamp está em GMT, precisa converter para GMT-3
-		// creation_time   : 2019-05-04T19:11:20.000000Z
-		assertEquals(LocalDateTime.of(2019, 5, 4, 16, 11, 20), fileInfo.getCreationDateTime(true));
-		assertEquals(LocalDateTime.of(2019, 5, 4, 19, 11, 20), fileInfo.getCreationDateTime(false)); // Se não converter, fica errado
-	}
-
-	@Test
-	public void getCreationTimeIphoneX() throws IOException {
-		FFmpegFileInfo fileInfo = getFileInfoComCache("video_iphone_com_creation_time.txt");
-		
-		// Timestamp está em GMT, precisa converter para GMT-3
-		// creation_time   : 2019-05-04T16:22:49.000000Z
-		assertEquals(LocalDateTime.of(2019, 5, 4, 13, 22, 49), fileInfo.getCreationDateTime(true));
-		assertEquals(LocalDateTime.of(2019, 5, 4, 16, 22, 49), fileInfo.getCreationDateTime(false)); // Se não converter, fica errado
-	}
-	
-	@Test
-	public void getCreationDateCameraNikon() throws IOException {
-		FFmpegFileInfo fileInfo = getFileInfoComCache("video_camera_nikon.txt");
-		
-		// Timestamp da câmera Nikon já está em "-3", então não pode alterar
-		// creation_time   : 2019-05-18T18:24:34.000000Z
-		assertEquals(LocalDateTime.of(2019, 5, 18, 18, 24, 34), fileInfo.getCreationDateTime(false));
-	}
-	
-	@Test
-	public void getDateYMDHMS() throws IOException {
+	public void getDateYMDHMS() throws Exception {
 		FFmpegFileInfo fileInfo = getFileInfoComCache("date_ymdhms.txt");
 		
 		// date            : 2011-10-15 14:08:06
@@ -62,23 +40,71 @@ public class FFmpegFileInfoTest {
 	}
 	
 	@Test
-	public void getDateYMD() throws IOException {
-		FFmpegFileInfo fileInfo = getFileInfoComCache("date_ymd.txt");
+	public void getCreationDateCameraNikon() throws Exception {
+		FFmpegFileInfo fileInfo = getFileInfoComCache("video_camera_nikon.txt");
 		
-		// date            : 20171221
-		assertEquals(LocalDateTime.of(2017, 12, 21, 0, 0, 0), fileInfo.getCreationDateTime(false));
+		// Timestamp da câmera Nikon já está em "-3", então não pode alterar
+		// creation_time   : 2019-05-18T18:24:34.000000Z
+		assertEquals(LocalDateTime.of(2019, 5, 18, 18, 24, 34), fileInfo.getCreationDateTime(false));
+		
+		// Resolução do vídeo Full HD
+		assertEquals(new Point(1920, 1080), fileInfo.getVideoResolution());
 	}
 	
 	@Test
-	public void getCreationDateVideoSemMetadados() throws IOException {
+	public void getCreationDateVideoSemMetadados() throws Exception {
 		FFmpegFileInfo fileInfo = getFileInfoComCache("video_foto_morph.txt");
 		
 		assertEquals(null, fileInfo.getCreationDateTime(false));
+		
+		// Resolução do vídeo Full HD
+		assertEquals(new Point(1620, 1080), fileInfo.getVideoResolution());
 	}
 
-	private FFmpegFileInfo getFileInfoComCache(String arquivoCache) throws IOException {
-		FFmpegFileInfo fileInfo = new FFmpegFileInfo(null);
-		fileInfo.cacheFileInfo = FileUtils.readLines(new File("src/test/resources/FFmpegFileInfoTest/" + arquivoCache), StandardCharsets.UTF_8.toString());
+	@Test
+	public void getCreationTimeIphoneX() throws Exception {
+		FFmpegFileInfo fileInfo = getFileInfoComCache("video_iphone_com_creation_time.txt");
+		
+		// Timestamp está em GMT, precisa converter para GMT-3
+		// creation_time   : 2019-05-04T16:22:49.000000Z
+		assertEquals(LocalDateTime.of(2019, 5, 4, 13, 22, 49), fileInfo.getCreationDateTime(true));
+		assertEquals(LocalDateTime.of(2019, 5, 4, 16, 22, 49), fileInfo.getCreationDateTime(false)); // Se não converter, fica errado
+		
+		// Resolução do vídeo Full HD
+		assertEquals(new Point(1920, 1080), fileInfo.getVideoResolution());
+	}
+	
+	@Test
+	public void getCreationDateIphoneSEComHorarioVerao() throws Exception {
+		FFmpegFileInfo fileInfo = getFileInfoComCache("video_iphone_se.txt");
+		
+		// Como o horário já está no timezone correto, o parâmetro "ajustarTimeZone" não influencia
+		// creation_time   : 2019-01-04T21:30:43.000000Z
+		// com.apple.quicktime.creationdate: 2019-01-04T19:30:43-0200
+		assertEquals(LocalDateTime.of(2019, 1, 4, 19, 30, 43), fileInfo.getCreationDateTime(true));
+		assertEquals(LocalDateTime.of(2019, 1, 4, 19, 30, 43), fileInfo.getCreationDateTime(false));
+		
+		// Resolução do vídeo Full HD
+		assertEquals(new Point(1920, 1080), fileInfo.getVideoResolution());
+	}
+	
+	@Test
+	public void getCreationDateIphoneX() throws Exception {
+		FFmpegFileInfo fileInfo = getFileInfoComCache("video_iphone_x.txt");
+		
+		// Timestamp está em GMT, precisa converter para GMT-3
+		// creation_time   : 2019-05-04T19:11:20.000000Z
+		assertEquals(LocalDateTime.of(2019, 5, 4, 16, 11, 20), fileInfo.getCreationDateTime(true));
+		assertEquals(LocalDateTime.of(2019, 5, 4, 19, 11, 20), fileInfo.getCreationDateTime(false)); // Se não converter, fica errado
+		
+		// Resolução do vídeo
+		assertEquals(new Point(568, 320), fileInfo.getVideoResolution());
+	}
+
+	private FFmpegFileInfo getFileInfoComCache(String arquivoCache) throws Exception {
+		File file = new File("src/test/resources/FFmpegFileInfoTest/" + arquivoCache);
+		FFmpegFileInfo fileInfo = new FFmpegFileInfo(file);
+		fileInfo.cacheFileInfo = FileUtils.readLines(file, StandardCharsets.UTF_8.toString());
 		return fileInfo;
 	}
 	
