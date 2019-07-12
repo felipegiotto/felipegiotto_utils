@@ -79,8 +79,16 @@ public class FFmpegParameters {
 	 * 
 	 * @param videoEncoderCodec
 	 */
-	public void setVideoEncoderCodec(String videoEncoderCodec) {
-		this.videoEncoderCodec = videoEncoderCodec;
+	public void setVideoEncoderCodec(String codec) {
+		this.videoEncoderCodec = codec;
+		
+		// Ao utilizar o COPY, outros parâmetros perdem a utilidade
+		if (ENCODER_COPY.equals(codec)) {
+			setVideoPreset(null);
+			setVideoLuminosidadeMaisClara(false);
+			setVideoQualidadeCrf(null);
+			setVideoQualidadeCrfPadrao(null);
+		}
 	}
 	
 	public String getVideoEncoderCodec() {
@@ -143,8 +151,7 @@ public class FFmpegParameters {
 		setAudioEncoderCodec(ENCODER_COPY);
 	}
 	
-	private boolean luminosidadeMaisClara;
-	//private Double ganhoLuminosidade;
+	private boolean videoLuminosidadeMaisClara;
 	
 	/**
 	 * Define o ganho de luminosidade ao compactar o vídeo.
@@ -158,15 +165,12 @@ public class FFmpegParameters {
 	 * 
 	 * @param ganhoLuminosidade
 	 */
-//	public void setGanhoLuminosidade(Double ganhoLuminosidade) {
-//		this.ganhoLuminosidade = ganhoLuminosidade;
-//	}
-	public void setLuminosidadeMaisClara(boolean luminosidadeMaisClara) {
-		this.luminosidadeMaisClara = luminosidadeMaisClara;
+	public void setVideoLuminosidadeMaisClara(boolean luminosidadeMaisClara) {
+		this.videoLuminosidadeMaisClara = luminosidadeMaisClara;
 	}
 	
-	public boolean isLuminosidadeMaisClara() {
-		return luminosidadeMaisClara;
+	public boolean isVideoLuminosidadeMaisClara() {
+		return videoLuminosidadeMaisClara;
 	}
 	
 	ArrayList<String> videoFilters = new ArrayList<>();
@@ -508,28 +512,105 @@ public class FFmpegParameters {
 		return videoRotationVerticalFlip;
 	}
 	
-	private Integer videoResolutionWidth;
-	private Integer videoResolutionHeight;
-	
+	private Integer videoResolutionFixedWidth;
+	private Integer videoResolutionFixedHeight;
+	private Integer videoResolutionConstrainedWidth;
+	private Integer videoResolutionConstrainedHeight;
+	private Integer videoResolutionConstrainedMultiple;
 	/**
-	 * Define resolução horizontal e vertical do vídeo.
+	 * Define resolução horizontal e vertical do vídeo. 
+	 * 
+	 * Esta é uma resolução FIXA, ou seja, o arquivo de saída obrigatoriamente terá esta resolução.
 	 * 
 	 * Se algum dos parâmetros for NULL, será utilizado um valor que mantenha a proporção do vídeo de saída.
 	 * 
 	 * @param width
 	 * @param height
 	 */
-	public void setVideoResolution(Integer width, Integer height) {
-		this.videoResolutionWidth = width;
-		this.videoResolutionHeight = height;
+	public void setVideoResolutionFixed(Integer width, Integer height) {
+		this.videoResolutionFixedWidth = width;
+		this.videoResolutionFixedHeight = height;
+		this.videoResolutionConstrainedWidth = null;
+		this.videoResolutionConstrainedHeight = null;
+		this.videoResolutionConstrainedMultiple = null;
 	}
 	
-	public Integer getVideoResolutionWidth() {
-		return videoResolutionWidth;
+	public Integer getVideoResolutionFixedWidth() {
+		return videoResolutionFixedWidth;
 	}
 	
-	public Integer getVideoResolutionHeight() {
-		return videoResolutionHeight;
+	public Integer getVideoResolutionFixedHeight() {
+		return videoResolutionFixedHeight;
+	}
+	
+	/**
+	 * @deprecated utilizar {@link setVideoResolutionFixed}
+	 */
+	public void setVideoResolutionFixedWidth(Integer videoResolutionFixedWidth) {
+		this.videoResolutionFixedWidth = videoResolutionFixedWidth;
+	}
+	
+	/**
+	 * @deprecated utilizar {@link setVideoResolutionFixed}
+	 */
+	public void setVideoResolutionFixedHeight(Integer videoResolutionFixedHeight) {
+		this.videoResolutionFixedHeight = videoResolutionFixedHeight;
+	}
+
+	/**
+	 * Define a resolução MÁXIMA do vídeo, de forma que ele caiba dentro da faixa
+	 * informada, mantendo a sua proporção original.
+	 * 
+	 * O parâmetro "multiple" permite, ainda, diminuir cada uma das resoluções (width
+	 * e height) para múltiplos de determinado número (ex: 16), para evitar problemas de 
+	 * números quebrados que o ffmpeg não consiga compactar.
+	 * 
+	 * Ao iniciar o encode, será lida a resolução do PRIMEIRO vídeo de entrada (para considerar 
+	 * como referência) e, a partir das regras descritas, calcula a resolução do vídeo de saída.
+	 * 
+	 * @param maxWidth : largura máxima que o vídeo pode ter
+	 * @param maxHeight : altura máxima que o vídeo pode ter
+	 * @param multiple : OPCIONAL: define que a largura e a altura do vídeo deverão ser múltiplos deste parâmetro (ex: 16)
+	 */
+	public void setVideoResolutionConstrained(int maxWidth, int maxHeight, Integer multiple) {
+		this.videoResolutionFixedWidth = null;
+		this.videoResolutionFixedHeight = null;
+		this.videoResolutionConstrainedWidth = maxWidth;
+		this.videoResolutionConstrainedHeight = maxHeight;
+		this.videoResolutionConstrainedMultiple = multiple;
+	}
+	
+	public Integer getVideoResolutionConstrainedWidth() {
+		return videoResolutionConstrainedWidth;
+	}
+	
+	public Integer getVideoResolutionConstrainedHeight() {
+		return videoResolutionConstrainedHeight;
+	}
+	
+	public Integer getVideoResolutionConstrainedMultiple() {
+		return videoResolutionConstrainedMultiple;
+	}
+	
+	/**
+	 * @deprecated utilizar {@link setVideoResolutionConstrained}
+	 */
+	public void setVideoResolutionConstrainedWidth(Integer videoResolutionConstrainedWidth) {
+		this.videoResolutionConstrainedWidth = videoResolutionConstrainedWidth;
+	}
+	
+	/**
+	 * @deprecated utilizar {@link setVideoResolutionConstrained}
+	 */
+	public void setVideoResolutionConstrainedHeight(Integer videoResolutionConstrainedHeight) {
+		this.videoResolutionConstrainedHeight = videoResolutionConstrainedHeight;
+	}
+	
+	/**
+	 * @deprecated utilizar {@link setVideoResolutionConstrained}
+	 */
+	public void setVideoResolutionConstrainedMultiple(Integer videoResolutionConstrainedMultiple) {
+		this.videoResolutionConstrainedMultiple = videoResolutionConstrainedMultiple;
 	}
 	
 	private boolean ocultarInformacoesVersoesBibliotecas;
@@ -558,6 +639,7 @@ public class FFmpegParameters {
 	 * @param fileInfo : local de onde a resolução original do vídeo será lida
 	 * @throws FFmpegException
 	 * @throws IOException
+	 * @deprecated utilizar {@link #setVideoResolutionConstrained}
 	 */
 	public void setVideoMaxResolutionFromFile(int maxWidth, int maxHeight, Integer multiple, FFmpegFileInfo fileInfo) throws FFmpegException, IOException {
 		
@@ -582,16 +664,26 @@ public class FFmpegParameters {
 				height = (height / multiple) * multiple;
 			}
 			LOGGER.debug("Resolucoes: entrada=" + resolucao.getX() + "x" + resolucao.getY() + ", saída=" + width + "x" + height);
-			setVideoResolution(width, height);
+			setVideoResolutionFixed(width, height);
 		}
 	}
 	
+	/**
+	 * @deprecated utilizar {@link #setVideoResolutionConstrained}
+	 */
 	public void setVideoMaxResolutionFromFile(int width, int height, Integer multiple, File file) throws FFmpegException, IOException {
 		FFmpegFileInfo fileInfo = new FFmpegFileInfo(file);
 		setVideoMaxResolutionFromFile(width, height, multiple, fileInfo);
 	}
 	
-	public ArrayList<String> buildParameters() throws IOException {
+	/**
+	 * 
+	 * @param fileInfoPrimeiroArquivo : necessário se a resolução de saída precisar ser calculada a partir da resolução de um vídeo de entrada
+	 * @return
+	 * @throws IOException
+	 * @throws FFmpegException 
+	 */
+	public ArrayList<String> buildParameters(FFmpegFileInfo fileInfoPrimeiroArquivo) throws IOException, FFmpegException {
 		ArrayList<String> commands = new ArrayList<>();
 		
 		if (ocultarInformacoesVersoesBibliotecas) {
@@ -641,17 +733,46 @@ public class FFmpegParameters {
 //			allVideoFilters.add("lutyuv=y=val*" + ganhoLuminosidade);
 //		}
 		// TODO: Melhorar, voltando para um esquema parecido com o anterior, com "ganhoLuminosidade", mas utilizando as curvas em vez de "lutyuv"
-		if (luminosidadeMaisClara) {
+		if (videoLuminosidadeMaisClara) {
 			allVideoFilters.add("curves=r='0/0.1 0.3/0.5 1/1':g='0/0.1 0.3/0.5 1/1':b='0/0.1 0.3/0.5 1/1'");
 		}
 		
 		// Redimensionando vídeo
-		if (videoResolutionWidth != null && videoResolutionHeight != null) {
-			allVideoFilters.add("scale=w=" + videoResolutionWidth + ":h=" + videoResolutionHeight);
-		} else if (videoResolutionWidth != null && videoResolutionHeight == null) {
-			allVideoFilters.add("scale=" + videoResolutionWidth + ":-1");
-		} else if (videoResolutionWidth == null && videoResolutionHeight != null) {
-			allVideoFilters.add("scale=-1:" + videoResolutionHeight);
+		Integer width = null;
+		Integer height = null;
+		if (videoResolutionFixedWidth != null || videoResolutionFixedHeight != null) {
+			width = videoResolutionFixedWidth;
+			height = videoResolutionFixedHeight;
+		} else if (videoResolutionConstrainedWidth != null || videoResolutionConstrainedHeight != null) {
+			// Pega a resolução original do vídeo
+			Point resolucao = fileInfoPrimeiroArquivo.getVideoResolution();
+			
+			// Calcula a relação ideal para restringir a resolução ao limite da tela da central
+			double relacaoWidth = resolucao.getX() / videoResolutionConstrainedWidth;
+			double relacaoHeight = resolucao.getY() / videoResolutionConstrainedHeight;
+			double relacaoMaior = Math.max(relacaoWidth, relacaoHeight);
+			
+			// Verifica se será necessário redimensionar o vídeo (pode ser que ele já seja menor do que o limite da tela - 720x480)
+			if (relacaoMaior > 1) {
+				
+				// Calcula a nova largura e altura, conforme a relação ideal calculada.
+				width = (int) (resolucao.getX() / relacaoMaior);
+				height = (int) (resolucao.getY() / relacaoMaior);
+				
+				// Limita a resolução de saída a múltiplos de 16 (parece que dá menos problemas. Seria o tamanho de cada "quadrado" utilizado na compactação do vídeo?)
+				if (videoResolutionConstrainedMultiple != null) {
+					width = (width / videoResolutionConstrainedMultiple) * videoResolutionConstrainedMultiple;
+					height = (height / videoResolutionConstrainedMultiple) * videoResolutionConstrainedMultiple;
+				}
+				LOGGER.debug("Resolucoes: entrada=" + resolucao.getX() + "x" + resolucao.getY() + ", saída=" + width + "x" + height);
+			}
+		}
+		if (width != null && height != null) {
+			allVideoFilters.add("scale=w=" + width + ":h=" + height);
+		} else if (width != null && height == null) {
+			allVideoFilters.add("scale=" + width + ":-1");
+		} else if (width == null && height != null) {
+			allVideoFilters.add("scale=-1:" + height);
 		}
 		
 		// Copiar metadados para destino

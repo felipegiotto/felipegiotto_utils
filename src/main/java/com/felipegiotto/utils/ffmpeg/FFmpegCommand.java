@@ -13,6 +13,7 @@ import org.apache.logging.log4j.Logger;
 
 import com.felipegiotto.utils.FGProcessUtils;
 import com.felipegiotto.utils.FGStreamUtils;
+import com.felipegiotto.utils.ffmpeg.util.FFmpegException;
 
 /**
  * Classe que monta uma linha de comando completa para chamar o "ffmpeg"
@@ -48,8 +49,9 @@ public class FFmpegCommand {
 	 * 
 	 * @throws IOException
 	 * @throws InterruptedException 
+	 * @throws FFmpegException 
 	 */
-	public void runAndWait(boolean escreverRetornoLogs) throws IOException, InterruptedException {
+	public void runAndWait(boolean escreverRetornoLogs) throws IOException, InterruptedException, FFmpegException {
 		
 		// Executa o FFmpeg
 		Process p = run();
@@ -63,7 +65,7 @@ public class FFmpegCommand {
 		FGProcessUtils.conferirRetornoProcesso(p);
 	}
 	
-	public Process run() throws IOException {
+	public Process run() throws IOException, FFmpegException {
 		List<String> commands = buildParameters();
 		
 		LOGGER.info("Executando comando: " + commands);
@@ -72,7 +74,7 @@ public class FFmpegCommand {
 		return pb.start();
 	}
 
-	public ArrayList<String> buildParameters() throws IOException {
+	public ArrayList<String> buildParameters() throws IOException, FFmpegException {
 		
 		// Verifica se o executável do ffmpeg foi configurado
 		if (FFmpegPath == null || !new File(FFmpegPath).exists()) {
@@ -111,7 +113,8 @@ public class FFmpegCommand {
 			commands.add("concat=n=" + inputFiles.size() + ":v=1:a=1");
 		}
 		
-		commands.addAll(parameters.buildParameters());
+		FFmpegFileInfo fileInfoPrimeiroArquivo = new FFmpegFileInfo(new File(inputFiles.get(0)));
+		commands.addAll(parameters.buildParameters(fileInfoPrimeiroArquivo));
 		
 		// Arquivo de saída
 		if (outputFile == null) {

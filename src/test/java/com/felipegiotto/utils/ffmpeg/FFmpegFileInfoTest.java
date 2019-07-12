@@ -54,8 +54,8 @@ public class FFmpegFileInfoTest {
 		// a mesma proporção do vídeo de entrada, que deverá resultar em 688x384
 		FFmpegParameters parameters = new FFmpegParameters();
 		parameters.setVideoMaxResolutionFromFile(700, 500, 16, fileInfo);
-		assertEquals(688, parameters.getVideoResolutionWidth().intValue());
-		assertEquals(384, parameters.getVideoResolutionHeight().intValue());
+		assertEquals(688, parameters.getVideoResolutionFixedWidth().intValue());
+		assertEquals(384, parameters.getVideoResolutionFixedHeight().intValue());
 		
 		// Duração (em segundos) do vídeo
 		assertEquals(40.24, fileInfo.getVideoDurationSeconds(), 0.01);
@@ -74,8 +74,8 @@ public class FFmpegFileInfoTest {
 		// a mesma proporção do vídeo de entrada, que deverá resultar em 200x133
 		FFmpegParameters parameters = new FFmpegParameters();
 		parameters.setVideoMaxResolutionFromFile(200, 200, null, fileInfo);
-		assertEquals(200, parameters.getVideoResolutionWidth().intValue());
-		assertEquals(133, parameters.getVideoResolutionHeight().intValue());
+		assertEquals(200, parameters.getVideoResolutionFixedWidth().intValue());
+		assertEquals(133, parameters.getVideoResolutionFixedHeight().intValue());
 		
 		// Duração (em segundos) do vídeo
 		assertEquals(26, fileInfo.getVideoDurationSeconds(), 0.01);

@@ -5,7 +5,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
-import java.io.IOException;
 
 import org.apache.commons.lang3.StringUtils;
 import org.junit.BeforeClass;
@@ -26,7 +25,7 @@ public class FFmpegCommandTest {
 	}
 	
 	@Test
-	public void linhaDeComandoMinima() throws IOException {
+	public void linhaDeComandoMinima() throws Exception {
 		FFmpegCommand ffmpeg = criarObjetoMinimo();
 		ffmpeg.addInputFile("teste.avi");
 		ffmpeg.setOutputFile("teste_output.avi");
@@ -34,7 +33,7 @@ public class FFmpegCommandTest {
 	}
 
 	@Test
-	public void definindoPrioridade() throws IOException {
+	public void definindoPrioridade() throws Exception {
 		FFmpegCommand ffmpeg = criarObjetoMinimo();
 		ffmpeg.addInputFile("teste.avi");
 		ffmpeg.setOutputFile("teste_output.avi");
@@ -43,7 +42,7 @@ public class FFmpegCommandTest {
 	}
 	
 	@Test
-	public void definindoInicioOuFim() throws IOException {
+	public void definindoInicioOuFim() throws Exception {
 		FFmpegCommand ffmpeg = criarObjetoMinimo();
 		ffmpeg.addInputFile("entrada.avi");
 		ffmpeg.setOutputFile("saida.avi");
@@ -53,7 +52,7 @@ public class FFmpegCommandTest {
 	}
 	
 	@Test
-	public void definindoCodecDeVideoComParametrosExtras() throws IOException {
+	public void definindoCodecDeVideoComParametrosExtras() throws Exception {
 		FFmpegCommand ffmpeg = criarObjetoMinimo();
 		ffmpeg.addInputFile("entrada.avi");
 		ffmpeg.setOutputFile("saida.avi");
@@ -63,7 +62,7 @@ public class FFmpegCommandTest {
 	}
 	
 	@Test
-	public void definindoCodecDeVideoParaVariosVideos() throws IOException {
+	public void definindoCodecDeVideoParaVariosVideos() throws Exception {
 		FFmpegCommand ffmpeg = criarObjetoMinimo();
 		ffmpeg.addInputFile("entrada1.avi");
 		ffmpeg.addInputFile("entrada2.avi");
@@ -73,43 +72,43 @@ public class FFmpegCommandTest {
 	}
 	
 	@Test
-	public void redimensionandoVideo() throws IOException {
+	public void redimensionandoVideo() throws Exception {
 		FFmpegCommand ffmpeg = criarObjetoMinimo();
 		ffmpeg.addInputFile("entrada.avi");
 		ffmpeg.setOutputFile("saida.avi");
 		ffmpeg.getParameters().setVideoEncoderCodec("libx264");
 		
 		// Tamanho definido
-		ffmpeg.getParameters().setVideoResolution(200, 300);
+		ffmpeg.getParameters().setVideoResolutionFixed(200, 300);
 		assertEquals("src/test/resources/ffmpeg -i entrada.avi -c:v libx264 -vf scale=w=200:h=300 saida.avi", StringUtils.join(ffmpeg.buildParameters(), " "));
 		
 		// Somente largura
-		ffmpeg.getParameters().setVideoResolution(200, null);
+		ffmpeg.getParameters().setVideoResolutionFixed(200, null);
 		assertEquals("src/test/resources/ffmpeg -i entrada.avi -c:v libx264 -vf scale=200:-1 saida.avi", StringUtils.join(ffmpeg.buildParameters(), " "));
 		
 		// Somente altura
-		ffmpeg.getParameters().setVideoResolution(null, 300);
+		ffmpeg.getParameters().setVideoResolutionFixed(null, 300);
 		assertEquals("src/test/resources/ffmpeg -i entrada.avi -c:v libx264 -vf scale=-1:300 saida.avi", StringUtils.join(ffmpeg.buildParameters(), " "));
 	}
 	
 	@Test
-	public void definindoLuminosidade() throws IOException {
+	public void definindoLuminosidade() throws Exception {
 		FFmpegCommand ffmpeg = criarObjetoMinimo();
 		ffmpeg.addInputFile("entrada.avi");
 		ffmpeg.setOutputFile("saida.avi");
 		ffmpeg.getParameters().setVideoEncoderCodec("libx264");
 //		ffmpeg.getParameters().setGanhoLuminosidade(2.0); // Deixa vídeo mais claro
-		ffmpeg.getParameters().setLuminosidadeMaisClara(true);
+		ffmpeg.getParameters().setVideoLuminosidadeMaisClara(true);
 //		assertEquals("src/test/resources/ffmpeg -i entrada.avi -c:v libx264 -vf lutyuv=y=val*2.0 saida.avi", StringUtils.join(ffmpeg.buildParameters(), " "));
 		assertEquals("src/test/resources/ffmpeg -i entrada.avi -c:v libx264 -vf curves=r='0/0.1 0.3/0.5 1/1':g='0/0.1 0.3/0.5 1/1':b='0/0.1 0.3/0.5 1/1' saida.avi", StringUtils.join(ffmpeg.buildParameters(), " "));
 		
 //		ffmpeg.getParameters().setGanhoLuminosidade(null); // Retorna ao padrao
-		ffmpeg.getParameters().setLuminosidadeMaisClara(false); // Retorna ao padrao
+		ffmpeg.getParameters().setVideoLuminosidadeMaisClara(false); // Retorna ao padrao
 		assertEquals("src/test/resources/ffmpeg -i entrada.avi -c:v libx264 saida.avi", StringUtils.join(ffmpeg.buildParameters(), " "));
 	}
 	
 	@Test
-	public void rotacionandoVideo() throws IOException {
+	public void rotacionandoVideo() throws Exception {
 		FFmpegCommand ffmpeg = criarObjetoMinimo();
 		ffmpeg.addInputFile("entrada.avi");
 		ffmpeg.setOutputFile("saida.avi");
@@ -123,7 +122,7 @@ public class FFmpegCommandTest {
 	}
 	
 	@Test
-	public void rotacionandoHflip() throws IOException {
+	public void rotacionandoHflip() throws Exception {
 		FFmpegCommand ffmpeg = criarObjetoMinimo();
 		ffmpeg.addInputFile("entrada.avi");
 		ffmpeg.setOutputFile("saida.avi");
@@ -138,7 +137,7 @@ public class FFmpegCommandTest {
 	}
 	
 	@Test
-	public void copiandoStreamsDeAudioEVideo() throws IOException {
+	public void copiandoStreamsDeAudioEVideo() throws Exception {
 		FFmpegCommand ffmpeg = criarObjetoMinimo();
 		ffmpeg.addInputFile("entrada.avi");
 		ffmpeg.setOutputFile("saida.avi");
@@ -148,7 +147,7 @@ public class FFmpegCommandTest {
 	}
 	
 	@Test
-	public void copiandoMetadadosParaArquivoDeSaida() throws IOException {
+	public void copiandoMetadadosParaArquivoDeSaida() throws Exception {
 		FFmpegCommand ffmpeg = criarObjetoMinimo();
 		ffmpeg.addInputFile("teste.avi");
 		ffmpeg.setOutputFile("teste_output.avi");
@@ -160,7 +159,7 @@ public class FFmpegCommandTest {
 	}
 	
 	@Test
-	public void definindoCodecDeAudioComParametrosExtras() throws IOException {
+	public void definindoCodecDeAudioComParametrosExtras() throws Exception {
 		FFmpegCommand ffmpeg = criarObjetoMinimo();
 		ffmpeg.addInputFile("entrada.avi");
 		ffmpeg.setOutputFile("saida.avi");
@@ -174,7 +173,7 @@ public class FFmpegCommandTest {
 	}
 	
 	@Test
-	public void movendoMetadadosDeAudioParaInicioDoVideo() throws IOException {
+	public void movendoMetadadosDeAudioParaInicioDoVideo() throws Exception {
 		FFmpegCommand ffmpeg = criarObjetoMinimo();
 		ffmpeg.addInputFile("teste.avi");
 		ffmpeg.setOutputFile("teste_output.avi");
@@ -186,7 +185,7 @@ public class FFmpegCommandTest {
 	}
 	
 	@Test
-	public void configurarPadraoCamerasFelipe() throws IOException {
+	public void configurarPadraoCamerasFelipe() throws Exception {
 		
 		// H264
 		FFmpegCommand ffmpeg = criarObjetoMinimo();
@@ -213,7 +212,7 @@ public class FFmpegCommandTest {
 	}
 
 	@Test
-	public void configurarPadraoCentralMultimidia() throws IOException {
+	public void configurarPadraoCentralMultimidia() throws Exception {
 		FFmpegCommand ffmpeg = criarObjetoMinimo();
 		ffmpeg.addInputFile("src/test/resources/video_1280x544.mov");
 		ffmpeg.setOutputFile("teste_output.avi");
