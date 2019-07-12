@@ -83,12 +83,15 @@ public class FFmpegParameters {
 		this.videoEncoderCodec = codec;
 		
 		// Ao utilizar o COPY, outros parâmetros perdem a utilidade
-		if (ENCODER_COPY.equals(codec)) {
+		if (isVideoEncoderCopy()) {
 			setVideoPreset(null);
 			setVideoLuminosidadeMaisClara(false);
 			setVideoQualidadeCrf(null);
-			setVideoQualidadeCrfPadrao(null);
 		}
+	}
+
+	public boolean isVideoEncoderCopy() {
+		return ENCODER_COPY.equals(this.videoEncoderCodec);
 	}
 	
 	public String getVideoEncoderCodec() {
@@ -300,29 +303,16 @@ public class FFmpegParameters {
 		setAudioMoverMetadadosParaInicio(true);
 	}
 
-	private Integer videoQualidadeCrfPadrao;
 	private Integer videoQualidadeCrf;
-	
-	public void setVideoQualidadeCrfPadrao(Integer qualidadeCrfPadrao) {
-		this.videoQualidadeCrfPadrao = qualidadeCrfPadrao;
-	}
 	
 	public void setVideoQualidadeCrf(Integer qualidadeCrf) {
 		this.videoQualidadeCrf = qualidadeCrf;
 	}
 	
-	/**
-	 * Se usuário especificou uma qualidade CRF, retorna ela. Senão:
-	 * Se existe uma qualidade parão, retorna ela. Senão:
-	 * Retorna null
-	 */
-	public Integer getVideoQualidadeCrfOuPadrao() {
-		if (videoQualidadeCrf != null) {
-			return videoQualidadeCrf;
-		}
-		return videoQualidadeCrfPadrao;
+	public Integer getVideoQualidadeCrf() {
+		return videoQualidadeCrf;
 	}
-
+	
 	private String audioQualidade;
 	public void setAudioQualidade(String qualidade) {
 		this.audioQualidade = qualidade;
@@ -358,7 +348,7 @@ public class FFmpegParameters {
 		// and 51 is worst possible. A lower value is a higher quality and a subjectively 
 		// sane range is 18-28. Consider 18 to be visually lossless or nearly so: it should 
 		// look the same or nearly the same as the input but it isn't technically lossless.
-		setVideoQualidadeCrfPadrao(24);
+		setVideoQualidadeCrf(24);
 //		setVideoAddExtraParameters("-crf", "24"); // (padrao)
 //		setVideoAddExtraParameters("-crf", "28"); // Qualidade um pouco menor, arquivo um pouco menor
 
@@ -400,7 +390,7 @@ public class FFmpegParameters {
 		// video at CRF 23, but result in about half the file size. Other than that, 
 		// CRF works just like in x264.
 		// setVideoAddExtraParameters("-crf", "28"); // (padrao)
-		setVideoQualidadeCrfPadrao(28); // Padrao
+		setVideoQualidadeCrf(28); // Padrao
 
 		// Workaround para que miniaturas e preview do Finder funcionem corretamente no MacOS X
 		// Fonte: https://discussions.apple.com/thread/8091782
@@ -708,9 +698,9 @@ public class FFmpegParameters {
 		}
 		
 		// Qualidade CRF
-		if (getVideoQualidadeCrfOuPadrao() != null) {
+		if (getVideoQualidadeCrf() != null) {
 			commands.add("-crf");
-			commands.add(getVideoQualidadeCrfOuPadrao().toString());
+			commands.add(getVideoQualidadeCrf().toString());
 		}
 		
 		// Parametros extras para processar o video
