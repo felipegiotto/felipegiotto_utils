@@ -234,13 +234,15 @@ public class FGInterativoUtils {
 			
 		} else {
 			RunnableComException runnable = targets.get(opcao - 1);
-			try {
-				runnable.run();
-			} catch (Exception ex) {
-				if (descartarExceptions) {
-					LOGGER.error(ex.getLocalizedMessage(), ex);
-				} else {
-					throw ex;
+			if (runnable != null) {
+				try {
+					runnable.run();
+				} catch (Exception ex) {
+					if (descartarExceptions) {
+						LOGGER.error(ex.getLocalizedMessage(), ex);
+					} else {
+						throw ex;
+					}
 				}
 			}
 			return true;

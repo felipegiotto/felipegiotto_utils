@@ -38,6 +38,10 @@ public class FFmpegParameters {
 		this.tempoInicial = tempoInicial;
 	}
 	
+	public String getTempoInicial() {
+		return tempoInicial;
+	}
+	
 	/**
 	 * Configura o tempo final do vídeo de entrada que será processado.
 	 * 
@@ -57,6 +61,10 @@ public class FFmpegParameters {
 		this.tempoFinal = tempoFinal;
 	}
 
+	public String getTempoFinal() {
+		return tempoFinal;
+	}
+	
 	public static final String ENCODER_COPY = "copy";
 	private String videoEncoderCodec = null;
 	private String audioEncoderCodec = null;
@@ -75,6 +83,10 @@ public class FFmpegParameters {
 		this.videoEncoderCodec = videoEncoderCodec;
 	}
 	
+	public String getVideoEncoderCodec() {
+		return videoEncoderCodec;
+	}
+	
 	/**
 	 * Define que o vídeo será simplesmente copiado do arquivo de entrada para o de saída.
 	 * 
@@ -82,6 +94,26 @@ public class FFmpegParameters {
 	 */
 	public void setVideoEncoderCopy() {
 		setVideoEncoderCodec(ENCODER_COPY);
+	}
+	
+	private String videoPreset;
+	
+	/**
+	 * Define o "preset" da codificação do vídeo (relação qualidade/tamanho/velocidade).
+	 * 
+	 * Exemplo: "medium", "slow", "slower".
+	 * 
+	 * Consulte a documentação do codec de vídeo (ex: H265) para informações sobre os valores possíveis:
+	 * https://trac.ffmpeg.org/wiki/Encode/H.265
+	 * 
+	 * @param videoPreset
+	 */
+	public void setVideoPreset(String videoPreset) {
+		this.videoPreset = videoPreset;
+	};
+	
+	public String getVideoPreset() {
+		return videoPreset;
 	}
 	
 	/**
@@ -96,6 +128,10 @@ public class FFmpegParameters {
 	 */
 	public void setAudioEncoderCodec(String audioEncoderCodec) {
 		this.audioEncoderCodec = audioEncoderCodec;
+	}
+	
+	public String getAudioEncoderCodec() {
+		return audioEncoderCodec;
 	}
 	
 	/**
@@ -129,6 +165,10 @@ public class FFmpegParameters {
 		this.luminosidadeMaisClara = luminosidadeMaisClara;
 	}
 	
+	public boolean isLuminosidadeMaisClara() {
+		return luminosidadeMaisClara;
+	}
+	
 	ArrayList<String> videoFilters = new ArrayList<>();
 	
 	/**
@@ -143,6 +183,10 @@ public class FFmpegParameters {
 	 */
 	public void addVideoFilter(String videoFilter) {
 		videoFilters.add(videoFilter);
+	}
+	
+	public ArrayList<String> getVideoFilters() {
+		return videoFilters;
 	}
 
 	List<String> videoExtraParameters;
@@ -196,6 +240,10 @@ public class FFmpegParameters {
 		this.videoCopiarMetadados = videoCopiarMetadados;
 	}
 	
+	public boolean isVideoCopiarMetadados() {
+		return videoCopiarMetadados;
+	}
+	
 	private boolean audioMoverMetadadosParaInicio = true;
 	
 	/**
@@ -242,26 +290,42 @@ public class FFmpegParameters {
 		setAudioEncoderCodec("aac");
 		
 		// Qualidade do audio
-		setQualidadeAudio("128k");
+		setAudioQualidade("128k");
 		
 		// Move metadados do áudio para o início do arquivo, para acelerar o início da reprodução
 		setAudioMoverMetadadosParaInicio(true);
 	}
 
-	private Integer qualidadeCrfPadrao;
-	private Integer qualidadeCrf;
+	private Integer videoQualidadeCrfPadrao;
+	private Integer videoQualidadeCrf;
 	
-	public void setQualidadeCrfPadrao(Integer qualidadeCrfPadrao) {
-		this.qualidadeCrfPadrao = qualidadeCrfPadrao;
+	public void setVideoQualidadeCrfPadrao(Integer qualidadeCrfPadrao) {
+		this.videoQualidadeCrfPadrao = qualidadeCrfPadrao;
 	}
 	
-	public void setQualidadeCrf(Integer qualidadeCrf) {
-		this.qualidadeCrf = qualidadeCrf;
+	public void setVideoQualidadeCrf(Integer qualidadeCrf) {
+		this.videoQualidadeCrf = qualidadeCrf;
 	}
 	
-	private String qualidadeAudio;
-	public void setQualidadeAudio(String qualidadeAudio) {
-		this.qualidadeAudio = qualidadeAudio;
+	/**
+	 * Se usuário especificou uma qualidade CRF, retorna ela. Senão:
+	 * Se existe uma qualidade parão, retorna ela. Senão:
+	 * Retorna null
+	 */
+	public Integer getVideoQualidadeCrfOuPadrao() {
+		if (videoQualidadeCrf != null) {
+			return videoQualidadeCrf;
+		}
+		return videoQualidadeCrfPadrao;
+	}
+
+	private String audioQualidade;
+	public void setAudioQualidade(String qualidade) {
+		this.audioQualidade = qualidade;
+	}
+	
+	public String getAudioQualidade() {
+		return audioQualidade;
 	}
 	
 	/**
@@ -277,9 +341,12 @@ public class FFmpegParameters {
 		
 		// Preset (qualidade x velocidade)
 		if (presetSlow) {
-			setVideoAddExtraParameters("-preset", "slow");     // Velocidade (em video de exemplo): 0.130x (padrao)
+			setVideoPreset("slow");
+//			setVideoAddExtraParameters("-preset", "slow");     // Velocidade (em video de exemplo): 0.130x (padrao)
 //			setVideoAddExtraParameters("-preset", "slower");   // Velocidade (em video de exemplo): 0.080x
 //			setVideoAddExtraParameters("-preset", "veryslow"); // Velocidade (em video de exemplo): 0.051x
+		} else {
+			setVideoPreset(null);
 		}
 
 		// Qualidade:
@@ -287,7 +354,7 @@ public class FFmpegParameters {
 		// and 51 is worst possible. A lower value is a higher quality and a subjectively 
 		// sane range is 18-28. Consider 18 to be visually lossless or nearly so: it should 
 		// look the same or nearly the same as the input but it isn't technically lossless.
-		setQualidadeCrfPadrao(24);
+		setVideoQualidadeCrfPadrao(24);
 //		setVideoAddExtraParameters("-crf", "24"); // (padrao)
 //		setVideoAddExtraParameters("-crf", "28"); // Qualidade um pouco menor, arquivo um pouco menor
 
@@ -316,9 +383,12 @@ public class FFmpegParameters {
 
 		// Preset (qualidade x velocidade)
 		if (presetSlow) {
-			setVideoAddExtraParameters("-preset", "slow");
+			setVideoPreset("slow");
+//			setVideoAddExtraParameters("-preset", "slow");
 //			setVideoAddExtraParameters("-preset", "slower");
 //			setVideoAddExtraParameters("-preset", "veryslow");
+		} else {
+			setVideoPreset(null);
 		}
 
 		// Qualidade:
@@ -326,7 +396,7 @@ public class FFmpegParameters {
 		// video at CRF 23, but result in about half the file size. Other than that, 
 		// CRF works just like in x264.
 		// setVideoAddExtraParameters("-crf", "28"); // (padrao)
-		setQualidadeCrfPadrao(28); // Padrao
+		setVideoQualidadeCrfPadrao(28); // Padrao
 
 		// Workaround para que miniaturas e preview do Finder funcionem corretamente no MacOS X
 		// Fonte: https://discussions.apple.com/thread/8091782
@@ -396,6 +466,10 @@ public class FFmpegParameters {
 		videoRotationVerticalFlip = false;
 	}
 	
+	public Integer getVideoRotation() {
+		return videoRotation;
+	}
+	
 	public void setVideoRotationTombarParaDireita() {
 		setVideoRotation(270);
 	}
@@ -408,12 +482,30 @@ public class FFmpegParameters {
 		setVideoRotation(90);
 	}
 	
+	/**
+	 * Indica se o vídeo deve ser espelhado horizontalmente
+	 * 
+	 * @param videoRotationHorizontalFlip
+	 */
 	public void setVideoRotationHorizontalFlip(boolean videoRotationHorizontalFlip) {
 		this.videoRotationHorizontalFlip = videoRotationHorizontalFlip;
 	}
 	
+	public boolean isVideoRotationHorizontalFlip() {
+		return videoRotationHorizontalFlip;
+	}
+	
+	/**
+	 * Indica se o vídeo deve ser espelhado verticalmente
+	 * 
+	 * @param videoRotationHorizontalFlip
+	 */
 	public void setVideoRotationVerticalFlip(boolean videoRotationVerticalFlip) {
 		this.videoRotationVerticalFlip = videoRotationVerticalFlip;
+	}
+	
+	public boolean isVideoRotationVerticalFlip() {
+		return videoRotationVerticalFlip;
 	}
 	
 	private Integer videoResolutionWidth;
@@ -438,6 +530,15 @@ public class FFmpegParameters {
 	
 	public Integer getVideoResolutionHeight() {
 		return videoResolutionHeight;
+	}
+	
+	private boolean ocultarInformacoesVersoesBibliotecas;
+	public void setOcultarInformacoesVersoesBibliotecas(boolean ocultar) {
+		this.ocultarInformacoesVersoesBibliotecas = ocultar;
+	}
+	
+	public boolean isOcultarInformacoesVersoesBibliotecas() {
+		return ocultarInformacoesVersoesBibliotecas;
 	}
 	
 	/**
@@ -493,6 +594,10 @@ public class FFmpegParameters {
 	public ArrayList<String> buildParameters() throws IOException {
 		ArrayList<String> commands = new ArrayList<>();
 		
+		if (ocultarInformacoesVersoesBibliotecas) {
+			commands.add("-hide_banner");
+		}
+		
 		// Tempos inicial e final
 		// TODO: implementar múltiplas janelas de tempo, aqui e na rotina de compactação de vídeos
 		if (tempoInicial != null) {
@@ -511,15 +616,16 @@ public class FFmpegParameters {
 		}
 		
 		// Qualidade CRF
-		if (qualidadeCrf != null) {
+		if (getVideoQualidadeCrfOuPadrao() != null) {
 			commands.add("-crf");
-			commands.add(qualidadeCrf.toString());
-		} else if (qualidadeCrfPadrao != null) {
-			commands.add("-crf");
-			commands.add(qualidadeCrfPadrao.toString());
+			commands.add(getVideoQualidadeCrfOuPadrao().toString());
 		}
 		
 		// Parametros extras para processar o video
+		if (videoPreset != null) {
+			commands.add("-preset");
+			commands.add(videoPreset);
+		}
 		if (videoExtraParameters != null) {
 			commands.addAll(videoExtraParameters);
 		}
@@ -626,9 +732,9 @@ public class FFmpegParameters {
 		// Parametros extras para processar o áudio (somente se estiver utilizando ENCODE)
 		boolean recompactarAudio = audioEncoderCodec != null && !ENCODER_COPY.equals(audioEncoderCodec);
 		if (recompactarAudio) {
-			if (qualidadeAudio != null) {
+			if (audioQualidade != null) {
 				commands.add("-b:a");
-				commands.add(qualidadeAudio);
+				commands.add(audioQualidade);
 			}
 			if (audioExtraParameters != null) {
 				commands.addAll(audioExtraParameters);

@@ -207,7 +207,7 @@ public class FFmpegCommandTest {
 		ffmpeg.addInputFile("teste.avi");
 		ffmpeg.setOutputFile("teste_output.avi");
 		ffmpeg.getParameters().configurarPadraoCamerasFelipe(true, false);
-		ffmpeg.getParameters().setQualidadeCrf(30);
+		ffmpeg.getParameters().setVideoQualidadeCrf(30);
 		assertEquals("src/test/resources/ffmpeg -i teste.avi -c:v libx265 -crf 30 -tag:v hvc1 -map_metadata 0 -c:a aac -b:a 128k -movflags +faststart teste_output.avi", StringUtils.join(ffmpeg.buildParameters(), " "));
 		
 	}

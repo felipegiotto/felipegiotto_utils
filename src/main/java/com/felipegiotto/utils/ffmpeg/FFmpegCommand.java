@@ -73,6 +73,12 @@ public class FFmpegCommand {
 	}
 
 	public ArrayList<String> buildParameters() throws IOException {
+		
+		// Verifica se o executável do ffmpeg foi configurado
+		if (FFmpegPath == null || !new File(FFmpegPath).exists()) {
+			throw new IOException("Parâmetro 'FFmpegPath' não foi configurado corretamente em FFmpegCommand, pois arquivo não existe: " + FFmpegPath);
+		}
+		
 		ArrayList<String> commands = new ArrayList<>();
 		
 		// Prioridade (valor 'nice')
