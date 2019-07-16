@@ -8,6 +8,17 @@ import org.junit.Test;
 public class FFmpegParametersTest {
 
 	@Test
+	public void inicioFimEmSegundos() {
+		FFmpegParameters parameters = new FFmpegParameters();
+		parameters.setTempoInicial(3600 + 60 + 1);
+		assertEquals("01:01:01", parameters.getTempoInicial());
+		parameters.setTempoFinal(2 * (3600 + 60 + 1));
+		assertEquals("02:02:02", parameters.getTempoFinal());
+		parameters.setTempoFinal(60);
+		assertEquals("00:01:00", parameters.getTempoFinal());
+	}
+	
+	@Test
 	public void redimensionandoVideo() throws Exception {
 		FFmpegFileInfo fileInfo = FFmpegFileInfoTest.getFileInfoComCache("video_camera_nikon.txt");
 		FFmpegParameters parameters = new FFmpegParameters();

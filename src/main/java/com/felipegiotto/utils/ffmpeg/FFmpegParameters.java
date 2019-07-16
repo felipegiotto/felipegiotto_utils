@@ -3,6 +3,8 @@ package com.felipegiotto.utils.ffmpeg;
 import java.awt.Point;
 import java.io.File;
 import java.io.IOException;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -37,6 +39,10 @@ public class FFmpegParameters {
 	public void setTempoInicial(String tempoInicial) {
 		this.tempoInicial = tempoInicial;
 	}
+	public void setTempoInicial(int tempoInicialSegundos) {
+		LocalTime timeOfDay = LocalTime.ofSecondOfDay(tempoInicialSegundos);
+		this.tempoInicial = timeOfDay.format(DateTimeFormatter.ofPattern("HH:mm:ss"));
+	}
 	
 	public String getTempoInicial() {
 		return tempoInicial;
@@ -59,6 +65,10 @@ public class FFmpegParameters {
 	 */
 	public void setTempoFinal(String tempoFinal) {
 		this.tempoFinal = tempoFinal;
+	}
+	public void setTempoFinal(int tempoFinalSegundos) {
+		LocalTime timeOfDay = LocalTime.ofSecondOfDay(tempoFinalSegundos);
+		this.tempoFinal = timeOfDay.format(DateTimeFormatter.ofPattern("HH:mm:ss"));
 	}
 
 	public String getTempoFinal() {
@@ -141,6 +151,10 @@ public class FFmpegParameters {
 		this.audioEncoderCodec = audioEncoderCodec;
 	}
 	
+	public boolean isAudioEncoderCopyOrBlank() {
+		return this.audioEncoderCodec == null || ENCODER_COPY.equals(this.audioEncoderCodec);
+	}
+
 	public String getAudioEncoderCodec() {
 		return audioEncoderCodec;
 	}
@@ -423,14 +437,7 @@ public class FFmpegParameters {
 		// Manual: http://pioneer.com.br/media/57028ce4c6c7f_0f800c39e4ad83be08fa4de9e5832bc5.pdf
 		// * Resolucao Maxima: 720px x 480/576px
 		// * Taxa de quadros maxima: 30fps
-		if (arquivoVideoParaReduzirResolucao != null) {
-			
-			try {
-				setVideoMaxResolutionFromFile(720, 480, 16, arquivoVideoParaReduzirResolucao);				
-			} catch (IOException | NullPointerException | FFmpegException e) {
-				throw new RuntimeException("Não foi possível analisar resolução do vídeo: " + e.getLocalizedMessage(), e);
-			}
-		}
+		setVideoResolutionConstrained(720, 480, 16);
 
 		// Codec de audio
 		setAudioEncoderCodec("libmp3lame");
