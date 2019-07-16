@@ -58,7 +58,22 @@ public class FFmpegCommand {
 		
 		// Mostra o resultado do comando
 		FGStreamUtils.consomeStream(p.getInputStream(), escreverRetornoLogs ? "STDOUT" : null, Level.INFO);
-		FGStreamUtils.consomeStream(p.getErrorStream(), escreverRetornoLogs ? "STDERR" : null, Level.INFO);
+//		FGStreamUtils.consomeStream(p.getErrorStream(), escreverRetornoLogs ? "STDERR" : null, Level.INFO);
+		FGStreamUtils.consomeStream(p.getErrorStream(), (line) -> {
+			if (escreverRetornoLogs) {
+				
+				// Linha de progresso é exibida de forma diferente, sobrescrevendo no mesmo lugar
+				// Outras linhas são exibidas como vieram do ffmpeg
+				StringBuilder exibir = new StringBuilder();
+				exibir.append("STDERR " + line);
+				if (line.contains("frame=") && line.contains("bitrate=")) {
+					exibir.append('\r'); // Volta linha ao início para que seja sobrescrita
+					System.out.print(exibir);
+				} else {
+					LOGGER.info(exibir);
+				}
+			}
+		});
 
 		// Aguarda o termino e verifica se ocorreu erro
 		p.waitFor();

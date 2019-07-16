@@ -16,12 +16,47 @@ import org.apache.logging.log4j.Logger;
  */
 public class FGStreamUtils {
 
+	public interface LineFound {
+		public void process(String line);
+	}
+	
 	private static final Logger LOGGER = LogManager.getLogger(FGStreamUtils.class);
 	
 	/**
 	 * Não instanciar - utilizar somente métodos estáticos
 	 */
 	private FGStreamUtils() { }
+	
+	
+	/**
+	 * Consome um stream de forma assíncrona, chamando um callback para cada linha encontrada.
+	 * 
+	 * Sugestão: utilizar com lambda expressions, ex:
+	 * 
+	 * <pre>consomeStream(inputStream, (line) -> System.out.println(line));</pre>
+	 * 
+	 * @param inputStream que será lido
+	 * @param lineFound callback chamado para cada linha encontrada
+	 */
+	public static void consomeStream(final InputStream inputStream, LineFound lineFound) {
+		new Thread(new Runnable() {
+
+			@Override
+			public void run() {
+				
+				try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
+				    String line;
+				    while ((line = reader.readLine()) != null) {
+				    	if (lineFound != null) {
+				    		lineFound.process(line);
+				    	}
+				    }
+				} catch (IOException ex) {
+					LOGGER.debug("Erro ignorado ao ler Stream: " + ex.getLocalizedMessage(), ex);
+				}
+			}
+		}).start();
+	}
 	
 	
 	/**
