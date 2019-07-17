@@ -59,15 +59,29 @@ public class FFmpegCommand {
 		// Mostra o resultado do comando
 		FGStreamUtils.consomeStream(p.getInputStream(), escreverRetornoLogs ? "STDOUT" : null, Level.INFO);
 //		FGStreamUtils.consomeStream(p.getErrorStream(), escreverRetornoLogs ? "STDERR" : null, Level.INFO);
+		final StringBuilder durationString = new StringBuilder();
 		FGStreamUtils.consomeStream(p.getErrorStream(), (line) -> {
 			if (escreverRetornoLogs) {
+				
+				// Analisa a duração do vídeo nas primeiras linhas do FFMPEG, para mostrar progresso
+				if (durationString.toString().isEmpty()) {
+					Float duracaoLinha = FFmpegFileInfo.getVideoDurationFromLine(line);
+					if (duracaoLinha != null) {
+						durationString.append("total=" + FFmpegParameters.secondsToHMS(duracaoLinha.intValue()));
+					}
+				}
 				
 				// Linha de progresso é exibida de forma diferente, sobrescrevendo no mesmo lugar
 				// Outras linhas são exibidas como vieram do ffmpeg
 				StringBuilder exibir = new StringBuilder();
 				exibir.append("STDERR " + line);
 				if (line.contains("frame=") && line.contains("bitrate=")) {
-					exibir.append('\r'); // Volta linha ao início para que seja sobrescrita
+					
+					// Mostra a duração total do vídeo (se ela foi identificada)
+					exibir.append(durationString);
+					
+					// Volta linha ao início para que seja sobrescrita
+					exibir.append('\r');
 					System.out.print(exibir);
 				} else {
 					LOGGER.info(exibir);

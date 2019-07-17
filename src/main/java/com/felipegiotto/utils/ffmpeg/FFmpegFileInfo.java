@@ -26,6 +26,7 @@ import com.felipegiotto.utils.ffmpeg.util.FFmpegException;
 public class FFmpegFileInfo {
 
 	private static final Logger LOGGER = LogManager.getLogger(FFmpegFileInfo.class);
+	private static final Pattern PATTERN_DURATION = Pattern.compile("Duration: (\\d+):(\\d+):(\\d+)\\.(\\d+)");
 	
 	private File file;
 	List<String> cacheFileInfo;
@@ -204,18 +205,25 @@ public class FFmpegFileInfo {
 	public float getVideoDurationSeconds() throws FFmpegException, IOException {
 	
 		for (String linha : getFullFileInfo()) {
-			Pattern pResolucao = Pattern.compile("Duration: (\\d+):(\\d+):(\\d+)\\.(\\d+)");
-			Matcher m = pResolucao.matcher(linha);
-			while (m.find()) {
-				int horas = Integer.parseInt(m.group(1));
-				int minutos = Integer.parseInt(m.group(2));
-				int segundos = Integer.parseInt(m.group(3));
-				float centesimos = Float.parseFloat(m.group(4));
-				return (3600 * horas) + (60 * minutos) + segundos + (centesimos/100); 
+			Float videoDuration = getVideoDurationFromLine(linha);
+			if (videoDuration != null) {
+				return videoDuration;
 			}
 		}
 		
 		String erro = "Não foi possível identificar a duração do vídeo no arquivo " + file + "!";
 		throw new FFmpegException(erro, StringUtils.join(getFullFileInfo(), "\n"));
 	}
+	
+	public static Float getVideoDurationFromLine(String linha) {
+		Matcher m = PATTERN_DURATION.matcher(linha);
+		if (m.find()) {
+			int horas = Integer.parseInt(m.group(1));
+			int minutos = Integer.parseInt(m.group(2));
+			int segundos = Integer.parseInt(m.group(3));
+			float centesimos = Float.parseFloat(m.group(4));
+			return (3600 * horas) + (60 * minutos) + segundos + (centesimos/100);
+		}
+		return null;
+	}	
 }

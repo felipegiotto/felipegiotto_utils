@@ -40,8 +40,7 @@ public class FFmpegParameters {
 		this.tempoInicial = tempoInicial;
 	}
 	public void setTempoInicial(int tempoInicialSegundos) {
-		LocalTime timeOfDay = LocalTime.ofSecondOfDay(tempoInicialSegundos);
-		this.tempoInicial = timeOfDay.format(DateTimeFormatter.ofPattern("HH:mm:ss"));
+		this.tempoInicial = secondsToHMS(tempoInicialSegundos);
 	}
 	
 	public String getTempoInicial() {
@@ -67,8 +66,12 @@ public class FFmpegParameters {
 		this.tempoFinal = tempoFinal;
 	}
 	public void setTempoFinal(int tempoFinalSegundos) {
-		LocalTime timeOfDay = LocalTime.ofSecondOfDay(tempoFinalSegundos);
-		this.tempoFinal = timeOfDay.format(DateTimeFormatter.ofPattern("HH:mm:ss"));
+		this.tempoFinal = secondsToHMS(tempoFinalSegundos);
+	}
+	
+	public static String secondsToHMS(int seconds) {
+		LocalTime timeOfDay = LocalTime.ofSecondOfDay(seconds);
+		return timeOfDay.format(DateTimeFormatter.ofPattern("HH:mm:ss"));
 	}
 
 	public String getTempoFinal() {
@@ -230,6 +233,17 @@ public class FFmpegParameters {
 		}
 	}
 	
+	public List<String> getVideoExtraParameters() {
+		return videoExtraParameters;
+	}
+	
+	/**
+	 * @deprecated use {@link #setVideoAddExtraParameters}
+	 */
+	public void setVideoExtraParameters(List<String> videoExtraParameters) {
+		this.videoExtraParameters = videoExtraParameters;
+	}
+	
 	/**
 	 * Adiciona parâmetros extras a serem passados para o codec de áudio, ex:
 	 * setAudioAddExtraParameters("-b:a", "128k");
@@ -245,6 +259,17 @@ public class FFmpegParameters {
 		for (String parameter: parameters) {
 			audioExtraParameters.add(parameter);
 		}
+	}
+	
+	public List<String> getAudioExtraParameters() {
+		return audioExtraParameters;
+	}
+	
+	/**
+	 * @deprecated use {@link #setAudioAddExtraParameters}
+	 */
+	public void setAudioExtraParameters(List<String> audioExtraParameters) {
+		this.audioExtraParameters = audioExtraParameters;
 	}
 	
 	private boolean videoCopiarMetadados = true;
