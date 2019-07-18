@@ -74,7 +74,7 @@ public class FFmpegCommand {
 				// Linha de progresso é exibida de forma diferente, sobrescrevendo no mesmo lugar
 				// Outras linhas são exibidas como vieram do ffmpeg
 				StringBuilder exibir = new StringBuilder();
-				exibir.append("STDERR " + line);
+				exibir.append(line);
 				if (line.contains("frame=") && line.contains("bitrate=")) {
 					
 					// Mostra a duração total do vídeo (se ela foi identificada)
@@ -84,7 +84,7 @@ public class FFmpegCommand {
 					exibir.append('\r');
 					System.out.print(exibir);
 				} else {
-					LOGGER.info(exibir);
+					LOGGER.info("STDERR " + exibir);
 				}
 			}
 		});

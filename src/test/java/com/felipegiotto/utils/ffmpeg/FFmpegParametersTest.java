@@ -2,6 +2,10 @@ package com.felipegiotto.utils.ffmpeg;
 
 import static org.junit.Assert.assertEquals;
 
+import java.awt.Dimension;
+import java.awt.Point;
+import java.awt.Rectangle;
+
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 
@@ -46,4 +50,15 @@ public class FFmpegParametersTest {
 		assertEquals("-vf scale=w=688:h=384", StringUtils.join(parameters.buildParameters(fileInfo), " "));
 	}
 
+	@Test
+	public void cropandoVideo() throws Exception {
+		FFmpegFileInfo fileInfo = FFmpegFileInfoTest.getFileInfoComCache("video_camera_nikon.txt");
+		FFmpegParameters parameters = new FFmpegParameters();
+		parameters.setVideoCopiarMetadados(false);
+		parameters.setAudioMoverMetadadosParaInicio(false);
+		
+		// Tamanho definido
+		parameters.setVideoCropRectangle(new Rectangle(new Point(10, 20), new Dimension(100, 200)));
+		assertEquals("-vf crop=100:200:10:20", StringUtils.join(parameters.buildParameters(fileInfo), " "));
+	}
 }

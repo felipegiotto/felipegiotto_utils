@@ -1,6 +1,7 @@
 package com.felipegiotto.utils.ffmpeg;
 
-import java.awt.Point;
+import java.awt.Dimension;
+import java.awt.Rectangle;
 import java.io.File;
 import java.io.IOException;
 import java.time.LocalTime;
@@ -138,6 +139,23 @@ public class FFmpegParameters {
 	
 	public String getVideoPreset() {
 		return videoPreset;
+	}
+	
+	private Rectangle videoCropRectangle;
+	
+	/**
+	 * Define um retângulo para que o vídeo seja recortado (crop). Ex:
+	 * 
+	 * <pre>setVideoCropRectangle(new Rectangle(new Point(10, 20), new Dimension(100, 200)))</pre>
+	 * 
+	 * @param cropRectangle : área do crop do vídeo ou "null" para não recortar
+	 */
+	public void setVideoCropRectangle(Rectangle videoCropRectangle) {
+		this.videoCropRectangle = videoCropRectangle;
+	}
+	
+	public Rectangle getVideoCropRectangle() {
+		return videoCropRectangle;
 	}
 	
 	/**
@@ -666,26 +684,26 @@ public class FFmpegParameters {
 	public void setVideoMaxResolutionFromFile(int maxWidth, int maxHeight, Integer multiple, FFmpegFileInfo fileInfo) throws FFmpegException, IOException {
 		
 		// Pega a resolução original do vídeo
-		Point resolucao = fileInfo.getVideoResolution();
+		Dimension resolucao = fileInfo.getVideoResolution();
 		
 		// Calcula a relação ideal para restringir a resolução ao limite da tela da central
-		double relacaoWidth = resolucao.getX() / maxWidth;
-		double relacaoHeight = resolucao.getY() / maxHeight;
+		double relacaoWidth = resolucao.getWidth() / maxWidth;
+		double relacaoHeight = resolucao.getHeight() / maxHeight;
 		double relacaoMaior = Math.max(relacaoWidth, relacaoHeight);
 		
 		// Verifica se será necessário redimensionar o vídeo (pode ser que ele já seja menor do que o limite da tela - 720x480)
 		if (relacaoMaior > 1) {
 			
 			// Calcula a nova largura e altura, conforme a relação ideal calculada.
-			int width = (int) (resolucao.getX() / relacaoMaior);
-			int height = (int) (resolucao.getY() / relacaoMaior);
+			int width = (int) (resolucao.getWidth() / relacaoMaior);
+			int height = (int) (resolucao.getHeight() / relacaoMaior);
 			
 			// Limita a resolução de saída a múltiplos de 16 (parece que dá menos problemas. Seria o tamanho de cada "quadrado" utilizado na compactação do vídeo?)
 			if (multiple != null) {
 				width = (width / multiple) * multiple;
 				height = (height / multiple) * multiple;
 			}
-			LOGGER.debug("Resolucoes: entrada=" + resolucao.getX() + "x" + resolucao.getY() + ", saída=" + width + "x" + height);
+			LOGGER.debug("Resolucoes: entrada=" + resolucao.getWidth() + "x" + resolucao.getHeight() + ", saída=" + width + "x" + height);
 			setVideoResolutionFixed(width, height);
 		}
 	}
@@ -758,6 +776,10 @@ public class FFmpegParameters {
 		if (videoLuminosidadeMaisClara) {
 			allVideoFilters.add("curves=r='0/0.1 0.3/0.5 1/1':g='0/0.1 0.3/0.5 1/1':b='0/0.1 0.3/0.5 1/1'");
 		}
+		if (videoCropRectangle != null) {
+			allVideoFilters.add("crop=" + ((int) videoCropRectangle.getWidth()) + ":" + ((int) videoCropRectangle.getHeight()) + 
+					":" + ((int) videoCropRectangle.getX()) + ":" + ((int) videoCropRectangle.getY()));
+		}
 		
 		// Redimensionando vídeo
 		Integer width = null;
@@ -767,26 +789,26 @@ public class FFmpegParameters {
 			height = videoResolutionFixedHeight;
 		} else if (videoResolutionConstrainedWidth != null || videoResolutionConstrainedHeight != null) {
 			// Pega a resolução original do vídeo
-			Point resolucao = fileInfoPrimeiroArquivo.getVideoResolution();
+			Dimension resolucao = fileInfoPrimeiroArquivo.getVideoResolution();
 			
 			// Calcula a relação ideal para restringir a resolução ao limite da tela da central
-			double relacaoWidth = resolucao.getX() / videoResolutionConstrainedWidth;
-			double relacaoHeight = resolucao.getY() / videoResolutionConstrainedHeight;
+			double relacaoWidth = resolucao.getWidth() / videoResolutionConstrainedWidth;
+			double relacaoHeight = resolucao.getHeight() / videoResolutionConstrainedHeight;
 			double relacaoMaior = Math.max(relacaoWidth, relacaoHeight);
 			
 			// Verifica se será necessário redimensionar o vídeo (pode ser que ele já seja menor do que o limite da tela - 720x480)
 			if (relacaoMaior > 1) {
 				
 				// Calcula a nova largura e altura, conforme a relação ideal calculada.
-				width = (int) (resolucao.getX() / relacaoMaior);
-				height = (int) (resolucao.getY() / relacaoMaior);
+				width = (int) (resolucao.getWidth() / relacaoMaior);
+				height = (int) (resolucao.getHeight() / relacaoMaior);
 				
 				// Limita a resolução de saída a múltiplos de 16 (parece que dá menos problemas. Seria o tamanho de cada "quadrado" utilizado na compactação do vídeo?)
 				if (videoResolutionConstrainedMultiple != null) {
 					width = (width / videoResolutionConstrainedMultiple) * videoResolutionConstrainedMultiple;
 					height = (height / videoResolutionConstrainedMultiple) * videoResolutionConstrainedMultiple;
 				}
-				LOGGER.debug("Resolucoes: entrada=" + resolucao.getX() + "x" + resolucao.getY() + ", saída=" + width + "x" + height);
+				LOGGER.debug("Resolucoes: entrada=" + resolucao.getWidth() + "x" + resolucao.getHeight() + ", saída=" + width + "x" + height);
 			}
 		}
 		if (width != null && height != null) {

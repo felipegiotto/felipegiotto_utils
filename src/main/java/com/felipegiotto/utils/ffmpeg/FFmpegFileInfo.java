@@ -1,6 +1,6 @@
 package com.felipegiotto.utils.ffmpeg;
 
-import java.awt.Point;
+import java.awt.Dimension;
 import java.io.File;
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -172,7 +172,7 @@ public class FFmpegFileInfo {
 		return ldt;
 	}
 
-	public Point getVideoResolution() throws FFmpegException, IOException {
+	public Dimension getVideoResolution() throws FFmpegException, IOException {
 		
 		for (String linha: getFullFileInfo()) {
 			
@@ -184,8 +184,8 @@ public class FFmpegFileInfo {
 					int width = Integer.parseInt(m.group(1));
 					int height = Integer.parseInt(m.group(2));
 					if (width > 0 && height > 0) {
-						Point p = new Point(width, height);
-						return p;
+						Dimension d = new Dimension(width, height);
+						return d;
 					}
 				}
 			}
