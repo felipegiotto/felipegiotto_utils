@@ -192,14 +192,7 @@ public class FFmpegParameters {
 	private boolean videoLuminosidadeMaisClara;
 	
 	/**
-	 * Define o ganho de luminosidade ao compactar o vídeo.
-	 * A luminosidade padrão é "1" (ou manter como NULL para que essa
-	 * informação nem seja passada ao FFMPEG). 
-	 * 
-	 * Valores menores (ex: 0.8) deixam o vídeo mais escuro. 
-	 * Valores maiores (ex: 1.5) deixam o vídeo mais claro. 
-	 * 
-	 * Fonte: https://forum.videohelp.com/threads/367595-%5BSOLVED%5D-%5Bffmpeg%5D-Brightening-a-dark-video
+	 * Define uma curva para aplicar um ganho de luminosidade ao compactar o vídeo.
 	 * 
 	 * @param ganhoLuminosidade
 	 */

@@ -64,7 +64,9 @@ public class FFmpegCommand {
 			if (escreverRetornoLogs) {
 				
 				// Analisa a duração do vídeo nas primeiras linhas do FFMPEG, para mostrar progresso
-				if (durationString.toString().isEmpty()) {
+				// OBS: só funciona corretamente quando está processando somente UM vídeo.
+				// TODO: melhorar, fazendo funcionar para quando houver mais
+				if (durationString.toString().isEmpty() && inputFiles.size() == 1) {
 					Float duracaoLinha = FFmpegFileInfo.getVideoDurationFromLine(line);
 					if (duracaoLinha != null) {
 						durationString.append("total=" + FFmpegParameters.secondsToHMS(duracaoLinha.intValue()));

@@ -36,9 +36,6 @@ import com.felipegiotto.utils.config.FGProperties;
  *       limite (nesse caso, excluindo os mais antigos do que a data informada), permitindo
  *       manter somente os X últimos (independente da data de modificação) ou então limpar TODOS.
  *
- * TODO: efetuar backups de arquivos antigos TODOS com o mesmo timestamp (para isolar os backups 
- *       gerados em uma determinada execução)
- * 
  * TODO: excluir backups de arquivos antigos progressivamente (localizar todos, organizar por 
  *       data e apagar em "fatias", ex: 5% a cada confirmação do usuário)
  * 
@@ -631,7 +628,11 @@ public class FGSincronizarConteudoPastas {
 				ultimaExibicaoListagemArquivosInexistentes = agora;
 			}
 			
-			// Itera sobre todos os filhos
+			// Monta uma lista de arquivos para exclusão, para não dar erro no DirectoryStream,
+			// se arquivos forem excluídos durante a iteração (DirectoryIteratorException)
+			List<Path> filhosParaExcluir = new ArrayList<>();
+			
+			// Itera sobre todos os filhos, "batendo" origem e destino
 			try (DirectoryStream<Path> filhosDestino = Files.newDirectoryStream(destino, this.globalFileFilter)) {
 				for (Path filhoDestino : filhosDestino) {
 					
@@ -643,15 +644,19 @@ public class FGSincronizarConteudoPastas {
 					
 					Path filhoOrigem = Paths.get(origem.toString(), filhoDestino.getFileName().toString());
 					if (!Files.exists(filhoOrigem)) {
-						
-						if (preservarVersoesAntigasDeArquivos) {
-							renomearArquivoParaBackup(filhoDestino, true);
-							
-						} else {
-							LOGGER.info(nome + "Excluindo pois não existe mais na origem: " + filhoDestino);
-							excluirRecursivamente(filhoDestino);
-						}
+						filhosParaExcluir.add(filhoDestino);
 					}
+				}
+			}
+			
+			// Itera sobre os que serão excluídos
+			for (Path filho: filhosParaExcluir) {
+				if (preservarVersoesAntigasDeArquivos) {
+					renomearArquivoParaBackup(filho, true);
+					
+				} else {
+					LOGGER.info(nome + "Excluindo pois não existe mais na origem: " + filho);
+					excluirRecursivamente(filho);
 				}
 			}
 		}
