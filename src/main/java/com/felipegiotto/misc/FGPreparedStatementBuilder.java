@@ -44,6 +44,9 @@ public class FGPreparedStatementBuilder {
 				if (param instanceof String) {
 					ps.setString(index++, (String) param);
 					
+				} else if (param instanceof Boolean) {
+					ps.setBoolean(index++, (Boolean) param);
+					
 				} else if (param instanceof Float) {
 					ps.setFloat(index++, (Float) param);
 					
