@@ -50,6 +50,9 @@ public class FGPreparedStatementBuilder {
 				} else if (param instanceof Float) {
 					ps.setFloat(index++, (Float) param);
 					
+				} else if (param instanceof Double) {
+					ps.setDouble(index++, (Double) param);
+					
 				} else if (param instanceof Integer) {
 					ps.setInt(index++, (Integer) param);
 					

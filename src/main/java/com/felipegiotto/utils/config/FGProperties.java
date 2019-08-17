@@ -29,6 +29,7 @@ public class FGProperties {
 	private Properties properties;
 	private Path pathArquivo;
 	private static final String NULL_VALUE = "___NULL__VALUE___";
+	private boolean changed = false;
 	
 	public FGProperties(Path pathArquivo, boolean obrigatorio) throws IOException {
 		this.pathArquivo = pathArquivo;
@@ -106,10 +107,43 @@ public class FGProperties {
 	
 	public void save() throws IOException {
 		salvarArquivoProperties(properties, pathArquivo, null);
+		changed = false;
 	}
 	
-	public void save(String comentario) throws IOException {
-		salvarArquivoProperties(properties, pathArquivo, comentario);
+	public void save(String comment) throws IOException {
+		salvarArquivoProperties(properties, pathArquivo, comment);
+		changed = false;
+	}
+	
+	/**
+	 * Salva em arquivo, mas somente se houve alguma modificação em relação ao objeto original.
+	 * 
+	 * OBS: para que a detecção de alterações funcione corretamente, devem ser utilizados os "setters"
+	 * da classe FGProperties. Se o objeto properties (retornado com "getProperties()") for manipulado
+	 * diretamente, a detecção não funcionará corretamente.
+	 * 
+	 * @throws IOException
+	 */
+	public void saveIfModified() throws IOException {
+		if (changed) {
+			save();
+		}
+	}
+	
+	/**
+	 * Salva em arquivo, mas somente se houve alguma modificação em relação ao objeto original.
+	 * 
+	 * OBS: para que a detecção de alterações funcione corretamente, devem ser utilizados os "setters"
+	 * da classe FGProperties. Se o objeto properties (retornado com "getProperties()") for manipulado
+	 * diretamente, a detecção não funcionará corretamente.
+	 * 
+	 * @param comment : comentário que será inserido automaticamente no cabeçalho do arquivo salvo.
+	 * @throws IOException
+	 */
+	public void saveIfModified(String comment) throws IOException {
+		if (changed) {
+			save(comment);
+		}
 	}
 	
 	/**
@@ -128,6 +162,7 @@ public class FGProperties {
 	
 	public void remove(String key) {
 		properties.remove(key);
+		changed = true;
 	}
 	
 	/*********************** String ***********************/
@@ -142,6 +177,7 @@ public class FGProperties {
 	 */
 	public void setString(String key, String value) {
 		properties.setProperty(key, value != null ? value : NULL_VALUE);
+		changed = true;
 	}
 	
 	/**
@@ -207,6 +243,7 @@ public class FGProperties {
 	 */
 	public void setInt(String key, Integer value) {
 		properties.setProperty(key, value != null ? Integer.toString(value) : NULL_VALUE);
+		changed = true;
 	}
 	
 	/**
@@ -272,6 +309,7 @@ public class FGProperties {
 	 */
 	public void setLong(String key, Long value) {
 		properties.setProperty(key, value != null ? Long.toString(value) : NULL_VALUE);
+		changed = true;
 	}
 	
 	/**
@@ -337,6 +375,7 @@ public class FGProperties {
 	 */
 	public void setDouble(String key, Double value) {
 		properties.setProperty(key, value != null ? Double.toString(value) : NULL_VALUE);
+		changed = true;
 	}
 	
 	/**
@@ -388,5 +427,23 @@ public class FGProperties {
 		} else {
 			return defaultValue;
 		}
+	}
+	
+	/**
+	 * Indica se houve alguma modificação neste objeto depois que ele foi criado (ou instanciado de um arquivo)
+	 * 
+	 * @return
+	 */
+	public boolean isChanged() {
+		return changed;
+	}
+	
+	/**
+	 * Retorna o objeto Properties original.
+	 * 
+	 * @return
+	 */
+	public Properties getProperties() {
+		return properties;
 	}
 }

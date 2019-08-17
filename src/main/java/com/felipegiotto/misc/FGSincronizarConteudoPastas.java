@@ -41,9 +41,6 @@ import com.felipegiotto.utils.config.FGProperties;
  * 
  * TODO: permitir escolher arquivos que não deve fazer backup de versões antigas
  * 
- * TODO: Implementar sincronização "otimista", olhando para data de modificação das pastas.
- *       Conferir se ao excluir arquivos também atualiza este timestamp
- * 
  * @author felipegiotto@gmail.com
  */
 public class FGSincronizarConteudoPastas {

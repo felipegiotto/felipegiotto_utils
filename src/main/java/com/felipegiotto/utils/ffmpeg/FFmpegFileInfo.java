@@ -27,7 +27,8 @@ public class FFmpegFileInfo {
 
 	private static final Logger LOGGER = LogManager.getLogger(FFmpegFileInfo.class);
 	private static final Pattern PATTERN_DURATION = Pattern.compile("Duration: (\\d+):(\\d+):(\\d+)\\.(\\d+)");
-	
+	private static final Pattern PATTERN_FPS = Pattern.compile("([0-9\\.]+) fps");
+
 	private File file;
 	List<String> cacheFileInfo;
 	
@@ -213,6 +214,20 @@ public class FFmpegFileInfo {
 		
 		String erro = "Não foi possível identificar a duração do vídeo no arquivo " + file + "!";
 		throw new FFmpegException(erro, StringUtils.join(getFullFileInfo(), "\n"));
+	}
+	
+	public Float getVideoFPS() throws NumberFormatException, IOException {
+		for (String linha: getFullFileInfo()) {
+			
+			// Ex: Stream #0:0(eng): Video: h264 (High 4:4:4 Predictive) (avc1 / 0x31637661), yuv444p, 1920x1080, 10399 kb/s, 29.97 fps, 29.97 tbr, 30k tbn, 59.94 tbc (default)
+			if (linha.contains("Stream") && linha.contains("fps")) {
+				Matcher m = PATTERN_FPS.matcher(linha);
+				if (m.find()) {
+					return Float.parseFloat(m.group(1));
+				}
+			}
+		}
+		return null;
 	}
 	
 	public static Float getVideoDurationFromLine(String linha) {
