@@ -18,6 +18,8 @@ import com.felipegiotto.utils.ffmpeg.util.FFmpegException;
 /**
  * Classe que monta uma linha de comando completa para chamar o "ffmpeg"
  * 
+ * TODO: monitorar travamento do ffmpeg (começa a processar o vídeo e, depois de alguns frames, fica travado). Acontecia na versão ffmpeg-94112-gbb11584924. Monitorar, agora que autalizei para ffmpeg-95025-g4ba45a95df.
+ * 
  * @author felipegiotto@gmail.com
  */
 public class FFmpegCommand {
@@ -56,43 +58,64 @@ public class FFmpegCommand {
 		// Executa o FFmpeg
 		Process p = run();
 		
-		// Mostra o resultado do comando
-		FGStreamUtils.consomeStream(p.getInputStream(), escreverRetornoLogs ? "STDOUT" : null, Level.INFO);
-//		FGStreamUtils.consomeStream(p.getErrorStream(), escreverRetornoLogs ? "STDERR" : null, Level.INFO);
-		final StringBuilder durationString = new StringBuilder();
-		FGStreamUtils.consomeStream(p.getErrorStream(), (line) -> {
-			if (escreverRetornoLogs) {
-				
-				// Analisa a duração do vídeo nas primeiras linhas do FFMPEG, para mostrar progresso
-				// OBS: só funciona corretamente quando está processando somente UM vídeo.
-				// TODO: melhorar, fazendo funcionar para quando houver mais
-				if (durationString.toString().isEmpty() && inputFiles.size() == 1) {
-					Float duracaoLinha = FFmpegFileInfo.getVideoDurationFromLine(line);
-					if (duracaoLinha != null) {
-						durationString.append("total=" + FFmpegParameters.secondsToHMS(duracaoLinha.intValue()));
+		// Evento para capturar Ctrl+C, se usuário abortar
+		Thread shutdownHook = new Thread() {
+	        public void run() {
+	        	System.out.println("Finalizando ffmpeg...");
+	        	p.destroy();
+	        }
+	    };
+		Runtime.getRuntime().addShutdownHook(shutdownHook);
+		try {
+			// Mostra o resultado do comando
+			FGStreamUtils.consomeStream(p.getInputStream(), escreverRetornoLogs ? "STDOUT" : null, Level.INFO);
+	//		FGStreamUtils.consomeStream(p.getErrorStream(), escreverRetornoLogs ? "STDERR" : null, Level.INFO);
+			final StringBuilder durationString = new StringBuilder();
+			FGStreamUtils.consomeStream(p.getErrorStream(), (line) -> {
+				if (escreverRetornoLogs) {
+					
+					// Analisa a duração do vídeo nas primeiras linhas do FFMPEG, para mostrar progresso
+					// OBS: só funciona corretamente quando está processando somente UM vídeo.
+					// TODO: melhorar, fazendo funcionar para quando houver mais
+					if (durationString.toString().isEmpty() && inputFiles.size() == 1) {
+						Float duracaoLinha = FFmpegFileInfo.getVideoDurationFromLine(line);
+						if (duracaoLinha != null) {
+							durationString.append("total=" + FFmpegParameters.secondsToHMS(duracaoLinha.intValue()) + " ");
+						}
+					}
+					
+					// Descarta linhas inúteis
+					if (line.contains("x265 [info]")) {
+						return;
+					}
+					
+					// Linha de progresso é exibida de forma diferente, sobrescrevendo no mesmo lugar
+					// Outras linhas são exibidas como vieram do ffmpeg
+					StringBuilder exibir = new StringBuilder();
+					exibir.append(line);
+					if (line.contains("frame=") && line.contains("bitrate=")) {
+						
+						// Mostra a duração total do vídeo (se ela foi identificada)
+						exibir.append(durationString);
+						
+						// Volta linha ao início para que seja sobrescrita
+						exibir.append('\r');
+						System.out.print(exibir);
+					} else {
+						LOGGER.info("STDERR " + exibir);
 					}
 				}
-				
-				// Linha de progresso é exibida de forma diferente, sobrescrevendo no mesmo lugar
-				// Outras linhas são exibidas como vieram do ffmpeg
-				StringBuilder exibir = new StringBuilder();
-				exibir.append(line);
-				if (line.contains("frame=") && line.contains("bitrate=")) {
-					
-					// Mostra a duração total do vídeo (se ela foi identificada)
-					exibir.append(durationString);
-					
-					// Volta linha ao início para que seja sobrescrita
-					exibir.append('\r');
-					System.out.print(exibir);
-				} else {
-					LOGGER.info("STDERR " + exibir);
-				}
-			}
-		});
-
-		// Aguarda o termino e verifica se ocorreu erro
-		p.waitFor();
+			});
+	
+			// Aguarda o termino e verifica se ocorreu erro
+			p.waitFor();
+		
+		} finally {
+			
+			// Remove a captura de Ctrl+C
+			Runtime.getRuntime().removeShutdownHook(shutdownHook);
+		}
+		
 		FGProcessUtils.conferirRetornoProcesso(p);
 	}
 	

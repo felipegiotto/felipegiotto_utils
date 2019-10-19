@@ -91,7 +91,7 @@ public class FFmpegFileInfo {
 			Matcher m = pTimestampVideos.matcher(line);
 			if (m.find()) {
 				String timestampString = m.group(2);
-				LOGGER.debug("Achei timestamp: " + line);
+				// LOGGER.debug("Achei timestamp: " + line);
 				
 				LocalDateTime timestamp = converterTimestampParaLocalDateTime(timestampString, ajustarTimeZone);
 				
@@ -118,6 +118,16 @@ public class FFmpegFileInfo {
 	// Ex: "date            : 20171221"
 	private static final Pattern pTimestamp5 = Pattern.compile("^(\\d{4})(\\d{2})(\\d{2})$");
 	
+	/**
+	 * Converte um timestamp (string) para Date/time.
+	 * 
+	 * Quando for possível identificar o timezone pela string, faz a conversão automática para a timezone local.
+	 * Quando NÃO for possível identificar o timezone pela string, faz a conversão somente se o parâmetro "ajustarTimeZone" estiver habilitado.
+	 * 
+	 * @param input : string que será lida
+	 * @param ajustarTimeZone
+	 * @return
+	 */
 	private static LocalDateTime converterTimestampParaLocalDateTime(String input, boolean ajustarTimeZone) {
 		Matcher m;
 

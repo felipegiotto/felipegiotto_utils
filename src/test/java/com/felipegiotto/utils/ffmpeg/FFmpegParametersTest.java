@@ -42,14 +42,33 @@ public class FFmpegParametersTest {
 		assertEquals("-vf scale=-1:300", StringUtils.join(parameters.buildParameters(fileInfo), " "));
 		
 		// Altura e largura, mas mantendo proporção de entrada, sem obedecer múltiplo
-		parameters.setVideoResolutionConstrained(200, 200, null);
+		parameters.setVideoResolutionConstrained(200, 200, null, false);
 		assertEquals("-vf scale=w=200:h=112", StringUtils.join(parameters.buildParameters(fileInfo), " "));
 		
 		// Altura e largura, mas mantendo proporção de entrada e obedecendo múltiplo
-		parameters.setVideoResolutionConstrained(700, 500, 16);
+		parameters.setVideoResolutionConstrained(700, 500, 16, false);
 		assertEquals("-vf scale=w=688:h=384", StringUtils.join(parameters.buildParameters(fileInfo), " "));
+		
+		// Altura e largura proporcional mas com vídeo tombado 
+		parameters.setVideoResolutionConstrained(500, 700, 16, true);
+		assertEquals("-vf scale=w=688:h=384", StringUtils.join(parameters.buildParameters(fileInfo), " "));
+		parameters.setVideoResolutionConstrained(500, 700, 16, false);
+		assertEquals("-vf scale=w=496:h=272", StringUtils.join(parameters.buildParameters(fileInfo), " "));
 	}
 
+	@Test
+	public void limitandoFPS() throws Exception {
+		FFmpegFileInfo fileInfo = FFmpegFileInfoTest.getFileInfoComCache("video_camera_nikon.txt");
+		FFmpegParameters parameters = new FFmpegParameters();
+		parameters.setVideoCopiarMetadados(false);
+		parameters.setAudioMoverMetadadosParaInicio(false);
+		
+		// Tamanho definido
+		parameters.setVideoFPS(60);
+		assertEquals("-vf fps=fps=60", StringUtils.join(parameters.buildParameters(fileInfo), " "));
+		
+	}
+	
 	@Test
 	public void cropandoVideo() throws Exception {
 		FFmpegFileInfo fileInfo = FFmpegFileInfoTest.getFileInfoComCache("video_camera_nikon.txt");

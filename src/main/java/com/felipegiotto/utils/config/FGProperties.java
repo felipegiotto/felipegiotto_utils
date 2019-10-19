@@ -1,3 +1,4 @@
+
 package com.felipegiotto.utils.config;
 
 import java.io.File;
@@ -424,6 +425,72 @@ public class FGProperties {
 	public Double getDouble(String key, Double defaultValue) {
 		if (properties.containsKey(key)) {
 			return getDouble(key);			
+		} else {
+			return defaultValue;
+		}
+	}
+	
+	/*********************** Float ***********************/
+	
+	/**
+	 * Grava uma propriedade no formato Float.
+	 * 
+	 * O valor pode, inclusive, ser NULL.
+	 * 
+	 * @param key
+	 * @param value
+	 */
+	public void setFloat(String key, Float value) {
+		properties.setProperty(key, value != null ? Float.toString(value) : NULL_VALUE);
+		changed = true;
+	}
+	
+	/**
+	 * Lê uma propriedade no formato Float. 
+	 * 
+	 * O valor pode, inclusive, ser NULL, se foi utilizado setFloat(key, null); 
+	 * 
+	 * Se a propriedade não existir, returna NULL.
+	 * 
+	 * @param key
+	 * @return
+	 */
+	public Float getFloat(String key) {
+		String value = properties.getProperty(key);
+		return isEmptyOrNullValue(value) ? null : Float.parseFloat(value);
+	}
+	
+	/**
+	 * Lê uma propriedade no formato Float.
+	 * 
+	 * O valor pode, inclusive, ser NULL, se foi utilizado setFloat(key, null);
+	 * 
+	 * Se a propriedade não existir, lança {@link NotFoundException}
+	 * 
+	 * @param key
+	 * @return
+	 */
+	public Float getFloatMandatory(String key) {
+		if (properties.containsKey(key)) {
+			return getFloat(key);
+		} else {
+			throw new NotFoundException("Property not found: " + key);
+		}
+	}
+	
+	/**
+	 * Lê uma propriedade no formato Float.
+	 * 
+	 * O valor pode, inclusive, ser NULL, se foi utilizado setFloat(key, null);
+	 * 
+	 * Se ela não existir, retorna o valor default
+	 * 
+	 * @param key
+	 * @return
+	 */
+	public Float getFloat(String key, Float defaultValue) {
+		if (properties.containsKey(key)) {
+			return getFloat(key);
 		} else {
 			return defaultValue;
 		}

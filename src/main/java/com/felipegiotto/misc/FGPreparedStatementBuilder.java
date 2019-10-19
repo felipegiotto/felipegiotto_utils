@@ -7,7 +7,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Classe que auxilia na criação de PreparedStatements informando, de uma só vez, os pedaços de SQL e seus parâmetros.
+ * Classe que auxilia na criação de PreparedStatements informando, de uma só vez, 
+ * os pedaços de SQL e seus parâmetros.
  * 
  * Ex:
  <code>
@@ -21,6 +22,7 @@ import java.util.List;
  		}
  	}
  </code>
+ *
  * @author felipegiotto@gmail.com
  */
 public class FGPreparedStatementBuilder {
@@ -69,5 +71,10 @@ public class FGPreparedStatementBuilder {
 			ps.close();
 			throw ex;
 		}
+	}
+	
+	@Override
+	public String toString() {
+		return "sql=" + sql.toString() + "; params=" + params.toString();
 	}
 }
