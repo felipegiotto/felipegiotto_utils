@@ -58,7 +58,6 @@ public class FFmpegCommand {
 		
 		// Mostra o resultado do comando
 		FGStreamUtils.consomeStream(p.getInputStream(), escreverRetornoLogs ? "STDOUT" : null, Level.INFO);
-//		FGStreamUtils.consomeStream(p.getErrorStream(), escreverRetornoLogs ? "STDERR" : null, Level.INFO);
 		final StringBuilder durationString = new StringBuilder();
 		FGStreamUtils.consomeStream(p.getErrorStream(), (line) -> {
 			if (escreverRetornoLogs) {
@@ -67,7 +66,7 @@ public class FFmpegCommand {
 				if (durationString.toString().isEmpty()) {
 					Float duracaoLinha = FFmpegFileInfo.getVideoDurationFromLine(line);
 					if (duracaoLinha != null) {
-						durationString.append("total=" + FFmpegParameters.secondsToHMS(duracaoLinha.intValue()));
+						durationString.append("total=" + FFmpegParameters.secondsToHMS(duracaoLinha.intValue()) + " ");
 					}
 				}
 				
