@@ -1,3 +1,4 @@
+
 package com.felipegiotto.utils.config;
 
 import java.io.File;
@@ -29,6 +30,7 @@ public class FGProperties {
 	private Properties properties;
 	private Path pathArquivo;
 	private static final String NULL_VALUE = "___NULL__VALUE___";
+	private boolean changed = false;
 	
 	public FGProperties(Path pathArquivo, boolean obrigatorio) throws IOException {
 		this.pathArquivo = pathArquivo;
@@ -106,10 +108,43 @@ public class FGProperties {
 	
 	public void save() throws IOException {
 		salvarArquivoProperties(properties, pathArquivo, null);
+		changed = false;
 	}
 	
-	public void save(String comentario) throws IOException {
-		salvarArquivoProperties(properties, pathArquivo, comentario);
+	public void save(String comment) throws IOException {
+		salvarArquivoProperties(properties, pathArquivo, comment);
+		changed = false;
+	}
+	
+	/**
+	 * Salva em arquivo, mas somente se houve alguma modificação em relação ao objeto original.
+	 * 
+	 * OBS: para que a detecção de alterações funcione corretamente, devem ser utilizados os "setters"
+	 * da classe FGProperties. Se o objeto properties (retornado com "getProperties()") for manipulado
+	 * diretamente, a detecção não funcionará corretamente.
+	 * 
+	 * @throws IOException
+	 */
+	public void saveIfModified() throws IOException {
+		if (changed) {
+			save();
+		}
+	}
+	
+	/**
+	 * Salva em arquivo, mas somente se houve alguma modificação em relação ao objeto original.
+	 * 
+	 * OBS: para que a detecção de alterações funcione corretamente, devem ser utilizados os "setters"
+	 * da classe FGProperties. Se o objeto properties (retornado com "getProperties()") for manipulado
+	 * diretamente, a detecção não funcionará corretamente.
+	 * 
+	 * @param comment : comentário que será inserido automaticamente no cabeçalho do arquivo salvo.
+	 * @throws IOException
+	 */
+	public void saveIfModified(String comment) throws IOException {
+		if (changed) {
+			save(comment);
+		}
 	}
 	
 	/**
@@ -128,6 +163,7 @@ public class FGProperties {
 	
 	public void remove(String key) {
 		properties.remove(key);
+		changed = true;
 	}
 	
 	/*********************** String ***********************/
@@ -142,6 +178,7 @@ public class FGProperties {
 	 */
 	public void setString(String key, String value) {
 		properties.setProperty(key, value != null ? value : NULL_VALUE);
+		changed = true;
 	}
 	
 	/**
@@ -207,6 +244,7 @@ public class FGProperties {
 	 */
 	public void setInt(String key, Integer value) {
 		properties.setProperty(key, value != null ? Integer.toString(value) : NULL_VALUE);
+		changed = true;
 	}
 	
 	/**
@@ -272,6 +310,7 @@ public class FGProperties {
 	 */
 	public void setLong(String key, Long value) {
 		properties.setProperty(key, value != null ? Long.toString(value) : NULL_VALUE);
+		changed = true;
 	}
 	
 	/**
@@ -337,6 +376,7 @@ public class FGProperties {
 	 */
 	public void setDouble(String key, Double value) {
 		properties.setProperty(key, value != null ? Double.toString(value) : NULL_VALUE);
+		changed = true;
 	}
 	
 	/**
@@ -388,5 +428,89 @@ public class FGProperties {
 		} else {
 			return defaultValue;
 		}
+	}
+	
+	/*********************** Float ***********************/
+	
+	/**
+	 * Grava uma propriedade no formato Float.
+	 * 
+	 * O valor pode, inclusive, ser NULL.
+	 * 
+	 * @param key
+	 * @param value
+	 */
+	public void setFloat(String key, Float value) {
+		properties.setProperty(key, value != null ? Float.toString(value) : NULL_VALUE);
+		changed = true;
+	}
+	
+	/**
+	 * Lê uma propriedade no formato Float. 
+	 * 
+	 * O valor pode, inclusive, ser NULL, se foi utilizado setFloat(key, null); 
+	 * 
+	 * Se a propriedade não existir, returna NULL.
+	 * 
+	 * @param key
+	 * @return
+	 */
+	public Float getFloat(String key) {
+		String value = properties.getProperty(key);
+		return isEmptyOrNullValue(value) ? null : Float.parseFloat(value);
+	}
+	
+	/**
+	 * Lê uma propriedade no formato Float.
+	 * 
+	 * O valor pode, inclusive, ser NULL, se foi utilizado setFloat(key, null);
+	 * 
+	 * Se a propriedade não existir, lança {@link NotFoundException}
+	 * 
+	 * @param key
+	 * @return
+	 */
+	public Float getFloatMandatory(String key) {
+		if (properties.containsKey(key)) {
+			return getFloat(key);
+		} else {
+			throw new NotFoundException("Property not found: " + key);
+		}
+	}
+	
+	/**
+	 * Lê uma propriedade no formato Float.
+	 * 
+	 * O valor pode, inclusive, ser NULL, se foi utilizado setFloat(key, null);
+	 * 
+	 * Se ela não existir, retorna o valor default
+	 * 
+	 * @param key
+	 * @return
+	 */
+	public Float getFloat(String key, Float defaultValue) {
+		if (properties.containsKey(key)) {
+			return getFloat(key);
+		} else {
+			return defaultValue;
+		}
+	}
+	
+	/**
+	 * Indica se houve alguma modificação neste objeto depois que ele foi criado (ou instanciado de um arquivo)
+	 * 
+	 * @return
+	 */
+	public boolean isChanged() {
+		return changed;
+	}
+	
+	/**
+	 * Retorna o objeto Properties original.
+	 * 
+	 * @return
+	 */
+	public Properties getProperties() {
+		return properties;
 	}
 }

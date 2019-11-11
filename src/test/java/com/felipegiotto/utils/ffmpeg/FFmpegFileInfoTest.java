@@ -3,7 +3,7 @@ package com.felipegiotto.utils.ffmpeg;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
-import java.awt.Point;
+import java.awt.Dimension;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -28,6 +28,8 @@ public class FFmpegFileInfoTest {
 			fail("Não deveria ter conseguido ler resolução de vídeo (ver arquivo date_ymd.txt)");
 		} catch (FFmpegException ex) {
 		}
+		
+		assertEquals(null, fileInfo.getVideoFPS());
 	}
 	
 	@Test
@@ -37,6 +39,8 @@ public class FFmpegFileInfoTest {
 		// date            : 2011-10-15 14:08:06
 		assertEquals(LocalDateTime.of(2011, 10, 15, 14, 8, 6), fileInfo.getCreationDateTime(false));
 		assertEquals(LocalDateTime.of(2011, 10, 15, 11, 8, 6), fileInfo.getCreationDateTime(true));
+		
+		assertEquals(null, fileInfo.getVideoFPS());
 	}
 	
 	@Test
@@ -48,7 +52,7 @@ public class FFmpegFileInfoTest {
 		assertEquals(LocalDateTime.of(2019, 5, 18, 18, 24, 34), fileInfo.getCreationDateTime(false));
 		
 		// Resolução do vídeo Full HD
-		assertEquals(new Point(1920, 1080), fileInfo.getVideoResolution());
+		assertEquals(new Dimension(1920, 1080), fileInfo.getVideoResolution());
 		
 		// Define a resolução máxima do vídeo (700 x 500) com múltiplo de 16, e mantendo 
 		// a mesma proporção do vídeo de entrada, que deverá resultar em 688x384
@@ -59,6 +63,9 @@ public class FFmpegFileInfoTest {
 		
 		// Duração (em segundos) do vídeo
 		assertEquals(40.24, fileInfo.getVideoDurationSeconds(), 0.01);
+		
+		// Frames por segundo do vídeo
+		assertEquals(29.97, fileInfo.getVideoFPS(), 0.01);
 	}
 	
 	@Test
@@ -68,7 +75,7 @@ public class FFmpegFileInfoTest {
 		assertEquals(null, fileInfo.getCreationDateTime(false));
 		
 		// Resolução do vídeo Full HD
-		assertEquals(new Point(1620, 1080), fileInfo.getVideoResolution());
+		assertEquals(new Dimension(1620, 1080), fileInfo.getVideoResolution());
 		
 		// Define a resolução máxima do vídeo (200 x 200) mantendo 
 		// a mesma proporção do vídeo de entrada, que deverá resultar em 200x133
@@ -79,6 +86,9 @@ public class FFmpegFileInfoTest {
 		
 		// Duração (em segundos) do vídeo
 		assertEquals(26, fileInfo.getVideoDurationSeconds(), 0.01);
+		
+		// Frames por segundo do vídeo
+		assertEquals(25f, fileInfo.getVideoFPS(), 0.01);
 	}
 
 	@Test
@@ -91,10 +101,13 @@ public class FFmpegFileInfoTest {
 		assertEquals(LocalDateTime.of(2019, 5, 4, 16, 22, 49), fileInfo.getCreationDateTime(false)); // Se não converter, fica errado
 		
 		// Resolução do vídeo Full HD
-		assertEquals(new Point(1920, 1080), fileInfo.getVideoResolution());
+		assertEquals(new Dimension(1920, 1080), fileInfo.getVideoResolution());
 
 		// Duração (em segundos) do vídeo
 		assertEquals(55.99, fileInfo.getVideoDurationSeconds(), 0.01);
+		
+		// Frames por segundo do vídeo
+		assertEquals(60, fileInfo.getVideoFPS(), 0.01);
 	}
 	
 	@Test
@@ -108,10 +121,13 @@ public class FFmpegFileInfoTest {
 		assertEquals(LocalDateTime.of(2019, 1, 4, 19, 30, 43), fileInfo.getCreationDateTime(false));
 		
 		// Resolução do vídeo Full HD
-		assertEquals(new Point(1920, 1080), fileInfo.getVideoResolution());
+		assertEquals(new Dimension(1920, 1080), fileInfo.getVideoResolution());
 
 		// Duração (em segundos) do vídeo
 		assertEquals(38.46, fileInfo.getVideoDurationSeconds(), 0.01);
+		
+		// Frames por segundo do vídeo
+		assertEquals(29.98, fileInfo.getVideoFPS(), 0.01);
 	}
 	
 	@Test
@@ -124,10 +140,13 @@ public class FFmpegFileInfoTest {
 		assertEquals(LocalDateTime.of(2019, 5, 4, 19, 11, 20), fileInfo.getCreationDateTime(false)); // Se não converter, fica errado
 		
 		// Resolução do vídeo
-		assertEquals(new Point(568, 320), fileInfo.getVideoResolution());
+		assertEquals(new Dimension(568, 320), fileInfo.getVideoResolution());
 
 		// Duração (em segundos) do vídeo
 		assertEquals(3670.98, fileInfo.getVideoDurationSeconds(), 0.01);
+		
+		// Frames por segundo do vídeo
+		assertEquals(30, fileInfo.getVideoFPS(), 0.01);
 	}
 
 	public static FFmpegFileInfo getFileInfoComCache(String arquivoCache) throws Exception {
@@ -154,10 +173,9 @@ public class FFmpegFileInfoTest {
 	}
 	
 	public static void main(String[] args) throws Exception {
-		// TODO: Limpar antes do commit
-		FFmpegCommand.setFFmpegPath("/Users/taeta/workspace/backup_fotos_e_macbook_ultimate/ffmpeg/ffmpeg-94112-gbb11584924");
+		FFmpegCommand.setFFmpegPath("ffmpeg/ffmpeg-94112-gbb11584924");
 		extrairMetadadosParaArquivoParaElaborarTeste(
-				"/Volumes/TimeCapsuleManual/ComBackup/Fotos/2019/2019 - Leonardo da Vinci - 2o Ano/2019-05-18 - Aniver Leo/_EXPORT/2019-05-18-15-24-34 - Luiz e Aristeu brincando - DSC_0138_compact_.mov",
+				"DSC_0138_compact_.mov",
 				"src/test/resources/FFmpegFileInfoTest/.txt");
 	}	
 }

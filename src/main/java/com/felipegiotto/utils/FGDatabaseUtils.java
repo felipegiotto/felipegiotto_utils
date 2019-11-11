@@ -89,6 +89,41 @@ public class FGDatabaseUtils {
 	
 	
 	/**
+	 * Lê um campo "float" de um ResultSet, retornando NULL quando necessário.
+	 * 
+	 * @param rs
+	 * @param fieldName
+	 * @return
+	 * @throws SQLException
+	 */
+	public static Float getFloatOrNull(ResultSet rs, String fieldName) throws SQLException {
+		Float value = rs.getFloat(fieldName);
+		if (rs.wasNull()) {
+			return null;
+		} else {
+			return value;
+		}
+	}
+
+	
+	/**
+	 * Seta um parâmetro Float em um PreparedStatement, utilizando "setNull" quando necessário
+	 * 
+	 * @param ps
+	 * @param parameterIndex
+	 * @param value
+	 * @throws SQLException
+	 */
+	public static void setFloatOrNull(PreparedStatement ps, int parameterIndex, Float value) throws SQLException {
+		if (value == null) {
+			ps.setNull(parameterIndex, Types.FLOAT);
+		} else {
+			ps.setFloat(parameterIndex, value);
+		}
+	}
+	
+	
+	/**
 	 * Lê um campo "long" de um ResultSet, retornando NULL quando necessário.
 	 * 
 	 * @param rs

@@ -15,6 +15,11 @@ import org.apache.logging.log4j.Logger;
 
 import com.felipegiotto.utils.ffmpeg.util.FFmpegException;
 
+/**
+ * TODO: Alterar FPS somente para baixo (ver se o filtro atual já não faz isso)
+ * 
+ * @author felipegiotto@gmail.com
+ */
 public class FFmpegParameters {
 	
 	private static final Logger LOGGER = LogManager.getLogger(FFmpegParameters.class);
@@ -192,14 +197,7 @@ public class FFmpegParameters {
 	private boolean videoLuminosidadeMaisClara;
 	
 	/**
-	 * Define o ganho de luminosidade ao compactar o vídeo.
-	 * A luminosidade padrão é "1" (ou manter como NULL para que essa
-	 * informação nem seja passada ao FFMPEG). 
-	 * 
-	 * Valores menores (ex: 0.8) deixam o vídeo mais escuro. 
-	 * Valores maiores (ex: 1.5) deixam o vídeo mais claro. 
-	 * 
-	 * Fonte: https://forum.videohelp.com/threads/367595-%5BSOLVED%5D-%5Bffmpeg%5D-Brightening-a-dark-video
+	 * Define uma curva para aplicar um ganho de luminosidade ao compactar o vídeo.
 	 * 
 	 * @param ganhoLuminosidade
 	 */
@@ -209,6 +207,16 @@ public class FFmpegParameters {
 	
 	public boolean isVideoLuminosidadeMaisClara() {
 		return videoLuminosidadeMaisClara;
+	}
+	
+	private Integer videoFPS;
+	
+	public Integer getVideoFPS() {
+		return videoFPS;
+	}
+	
+	public void setVideoFPS(Integer videoFPS) {
+		this.videoFPS = videoFPS;
 	}
 	
 	ArrayList<String> videoFilters = new ArrayList<>();
@@ -330,10 +338,6 @@ public class FFmpegParameters {
 	 * de modo que funcione em diversos dispositivos (mac, celular, whatsapp, google drive, etc).
 	 */
 	public void configurarPadraoCamerasFelipe(boolean utilizarH265, boolean presetSlow) {
-		
-		// 15 = Prioridade baixa, para não prejudicar outras atividades do PC
-		// TODO: Descomentar
-//		setProcessNicePriority(15);
 		
 		if (utilizarH265) {
 			configurarVideoH265(presetSlow);
@@ -458,14 +462,12 @@ public class FFmpegParameters {
 	 * Configura todos os parâmetros para o padrão de vídeo e áudio utilizado pela 
 	 * Central Multimidia Pioneer AVH-288BT.
 	 * 
+	 * Fonte: http://pioneer.com.br/media/57028ce4c6c7f_0f800c39e4ad83be08fa4de9e5832bc5.pdf pág 46
+	 * 
 	 * @param arquivoVideoParaReduzirResolucao : se informado, será a base para definir
 	 * a resolução do vídeo de saída para que caiba corretamente na resolução da central.
 	 */
 	public void configurarPadraoCentralMultimidia(File arquivoVideoParaReduzirResolucao) {
-		
-		// 15 = Prioridade baixa, para não prejudicar outras atividades do PC
-		// TODO: Descomentar
-//		setProcessNicePriority(15);
 		
 		setVideoEncoderCodec("libxvid");
 
@@ -477,10 +479,10 @@ public class FFmpegParameters {
 
 		// Redimensionar para caber na tela da Central AVH-288BT
 		// Fonte: https://trac.ffmpeg.org/wiki/Scaling%20(resizing)%20with%20ffmpeg
-		// Manual: http://pioneer.com.br/media/57028ce4c6c7f_0f800c39e4ad83be08fa4de9e5832bc5.pdf
+		// Manual: http://pioneer.com.br/media/57028ce4c6c7f_0f800c39e4ad83be08fa4de9e5832bc5.pdf pág 46
 		// * Resolucao Maxima: 720px x 480/576px
 		// * Taxa de quadros maxima: 30fps
-		setVideoResolutionConstrained(720, 480, 16);
+		setVideoResolutionConstrained(720, 480, 16, false);
 
 		// Codec de audio
 		setAudioEncoderCodec("libmp3lame");
@@ -557,6 +559,8 @@ public class FFmpegParameters {
 	private Integer videoResolutionConstrainedWidth;
 	private Integer videoResolutionConstrainedHeight;
 	private Integer videoResolutionConstrainedMultiple;
+	private boolean videoResolutionConstrainedAllowInvert;
+	
 	/**
 	 * Define resolução horizontal e vertical do vídeo. 
 	 * 
@@ -611,13 +615,16 @@ public class FFmpegParameters {
 	 * @param maxWidth : largura máxima que o vídeo pode ter
 	 * @param maxHeight : altura máxima que o vídeo pode ter
 	 * @param multiple : OPCIONAL: define que a largura e a altura do vídeo deverão ser múltiplos deste parâmetro (ex: 16)
+	 * @param allowRotate : se "true", o vídeo deve obrigatoriamente obedecer aos limites informados.
+	 * Se "false", a proporção poderá ser invertida conforme orientação do vídeo (ex: se vídeo for 800x600 e usuário selecionar 600x800, a resolução original será mantida)
 	 */
-	public void setVideoResolutionConstrained(int maxWidth, int maxHeight, Integer multiple) {
+	public void setVideoResolutionConstrained(int maxWidth, int maxHeight, Integer multiple, boolean allowRotate) {
 		this.videoResolutionFixedWidth = null;
 		this.videoResolutionFixedHeight = null;
 		this.videoResolutionConstrainedWidth = maxWidth;
 		this.videoResolutionConstrainedHeight = maxHeight;
 		this.videoResolutionConstrainedMultiple = multiple;
+		this.videoResolutionConstrainedAllowInvert = allowRotate;
 	}
 	
 	public Integer getVideoResolutionConstrainedWidth() {
@@ -630,6 +637,10 @@ public class FFmpegParameters {
 	
 	public Integer getVideoResolutionConstrainedMultiple() {
 		return videoResolutionConstrainedMultiple;
+	}
+	
+	public boolean isVideoResolutionConstrainedAllowInvert() {
+		return videoResolutionConstrainedAllowInvert;
 	}
 	
 	/**
@@ -780,6 +791,9 @@ public class FFmpegParameters {
 			allVideoFilters.add("crop=" + ((int) videoCropRectangle.getWidth()) + ":" + ((int) videoCropRectangle.getHeight()) + 
 					":" + ((int) videoCropRectangle.getX()) + ":" + ((int) videoCropRectangle.getY()));
 		}
+		if (videoFPS != null) {
+			allVideoFilters.add("fps=fps=" + videoFPS);
+		}
 		
 		// Redimensionando vídeo
 		Integer width = null;
@@ -787,28 +801,44 @@ public class FFmpegParameters {
 		if (videoResolutionFixedWidth != null || videoResolutionFixedHeight != null) {
 			width = videoResolutionFixedWidth;
 			height = videoResolutionFixedHeight;
-		} else if (videoResolutionConstrainedWidth != null || videoResolutionConstrainedHeight != null) {
-			// Pega a resolução original do vídeo
-			Dimension resolucao = fileInfoPrimeiroArquivo.getVideoResolution();
-			
-			// Calcula a relação ideal para restringir a resolução ao limite da tela da central
-			double relacaoWidth = resolucao.getWidth() / videoResolutionConstrainedWidth;
-			double relacaoHeight = resolucao.getHeight() / videoResolutionConstrainedHeight;
-			double relacaoMaior = Math.max(relacaoWidth, relacaoHeight);
-			
-			// Verifica se será necessário redimensionar o vídeo (pode ser que ele já seja menor do que o limite da tela - 720x480)
-			if (relacaoMaior > 1) {
+		} else {
+			Integer maxWidth = videoResolutionConstrainedWidth;
+			Integer maxHeight = videoResolutionConstrainedHeight;
+			if (maxWidth != null || maxHeight != null) {
 				
-				// Calcula a nova largura e altura, conforme a relação ideal calculada.
-				width = (int) (resolucao.getWidth() / relacaoMaior);
-				height = (int) (resolucao.getHeight() / relacaoMaior);
+				// Pega a resolução original do vídeo
+				Dimension resolucao = fileInfoPrimeiroArquivo.getVideoResolution();
 				
-				// Limita a resolução de saída a múltiplos de 16 (parece que dá menos problemas. Seria o tamanho de cada "quadrado" utilizado na compactação do vídeo?)
-				if (videoResolutionConstrainedMultiple != null) {
-					width = (width / videoResolutionConstrainedMultiple) * videoResolutionConstrainedMultiple;
-					height = (height / videoResolutionConstrainedMultiple) * videoResolutionConstrainedMultiple;
+				// Verifica se é preciso inverter a resolução para manter proporção
+				if (videoResolutionConstrainedAllowInvert) {
+					boolean isOriginalVertical = resolucao.getHeight() > resolucao.getWidth();
+					boolean isEsperadoVertical = maxHeight.intValue() > maxWidth.intValue();
+					if (isOriginalVertical != isEsperadoVertical) {
+						Integer swap = maxWidth;
+						maxWidth = maxHeight;
+						maxHeight = swap;
+					}
 				}
-				LOGGER.debug("Resolucoes: entrada=" + resolucao.getWidth() + "x" + resolucao.getHeight() + ", saída=" + width + "x" + height);
+				
+				// Calcula a relação ideal para restringir a resolução ao limite da tela da central
+				double relacaoWidth = resolucao.getWidth() / maxWidth;
+				double relacaoHeight = resolucao.getHeight() / maxHeight;
+				double relacaoMaior = Math.max(relacaoWidth, relacaoHeight);
+				
+				// Verifica se será necessário redimensionar o vídeo (pode ser que ele já seja menor do que o limite da tela - 720x480)
+				if (relacaoMaior > 1) {
+					
+					// Calcula a nova largura e altura, conforme a relação ideal calculada.
+					width = (int) (resolucao.getWidth() / relacaoMaior);
+					height = (int) (resolucao.getHeight() / relacaoMaior);
+					
+					// Limita a resolução de saída a múltiplos de 16 (parece que dá menos problemas. Seria o tamanho de cada "quadrado" utilizado na compactação do vídeo?)
+					if (videoResolutionConstrainedMultiple != null) {
+						width = (width / videoResolutionConstrainedMultiple) * videoResolutionConstrainedMultiple;
+						height = (height / videoResolutionConstrainedMultiple) * videoResolutionConstrainedMultiple;
+					}
+					LOGGER.debug("Resolucoes: entrada=" + resolucao.getWidth() + "x" + resolucao.getHeight() + ", saída=" + width + "x" + height);
+				}
 			}
 		}
 		if (width != null && height != null) {
