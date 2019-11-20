@@ -41,6 +41,9 @@ import com.felipegiotto.utils.config.FGProperties;
  * 
  * TODO: permitir escolher arquivos que não deve fazer backup de versões antigas
  * 
+ * TODO: Parece que não está funcionando quando o fileFilter nega com fileName.equals("node_modules"):
+ *       a ferramenta continua navegando dentro das pastas
+ *
  * @author felipegiotto@gmail.com
  */
 public class FGSincronizarConteudoPastas {

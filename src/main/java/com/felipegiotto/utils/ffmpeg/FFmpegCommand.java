@@ -69,7 +69,6 @@ public class FFmpegCommand {
 		try {
 			// Mostra o resultado do comando
 			FGStreamUtils.consomeStream(p.getInputStream(), escreverRetornoLogs ? "STDOUT" : null, Level.INFO);
-	//		FGStreamUtils.consomeStream(p.getErrorStream(), escreverRetornoLogs ? "STDERR" : null, Level.INFO);
 			final StringBuilder durationString = new StringBuilder();
 			FGStreamUtils.consomeStream(p.getErrorStream(), (line) -> {
 				if (escreverRetornoLogs) {
