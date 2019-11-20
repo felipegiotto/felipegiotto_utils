@@ -318,6 +318,10 @@ public class FFmpegParameters {
 	
 	private boolean audioMoverMetadadosParaInicio = true;
 	
+	public boolean isAudioMoverMetadadosParaInicio() {
+		return audioMoverMetadadosParaInicio;
+	}
+	
 	/**
 	 * Indica se os metadados do áudio devem ser gravados no início do arquivo.
 	 * 

@@ -73,6 +73,18 @@ public class FGPreparedStatementBuilder {
 		}
 	}
 	
+	public String getSQL() {
+		return sql.toString();
+	}
+	
+	public List<Object> getParams() {
+		return params;
+	}
+	
+	public void setParams(List<Object> params) {
+		this.params = params;
+	}
+	
 	@Override
 	public String toString() {
 		return "sql=" + sql.toString() + "; params=" + params.toString();
