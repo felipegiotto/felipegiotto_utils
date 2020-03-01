@@ -173,6 +173,10 @@ public class FFmpegFileInfo {
 			return LocalDateTime.of(Integer.parseInt(m.group(1)), Integer.parseInt(m.group(2)), Integer.parseInt(m.group(3)), 0, 0, 0);
 		}
 		
+		if (input.equals("0")) {
+			return null;
+		}
+		
 		throw new RuntimeException("Timestamp nao identificado: '" + input + "'! Melhore o metodo Auxiliar.converteTimestampParaDate!");
 	}
 

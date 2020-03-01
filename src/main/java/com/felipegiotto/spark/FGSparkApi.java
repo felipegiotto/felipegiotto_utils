@@ -1,7 +1,6 @@
 package com.felipegiotto.spark;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonSyntaxException;
 
 import spark.Request;
 

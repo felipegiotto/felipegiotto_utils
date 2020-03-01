@@ -26,16 +26,16 @@ public class FGFileUtils {
 	}
 	
 	
-	public static void garantirQuePastaExista(File in) throws IOException {
-		if (!in.isDirectory()) {
-			throw new IOException("Pasta não existe: " + in);
+	public static void garantirQuePastaExista(File pasta) throws IOException {
+		if (!pasta.isDirectory()) {
+			throw new IOException("Pasta não existe: " + pasta);
 		}
 	}
 
 	
-	public static void garantirQueArquivoOuPastaExista(File in) throws IOException {
-		if (!in.exists()) {
-			throw new IOException("Arquivo/Pasta não existe: " + in);
+	public static void garantirQueArquivoOuPastaExista(File arquivo) throws IOException {
+		if (!arquivo.exists()) {
+			throw new IOException("Arquivo/Pasta não existe: " + arquivo);
 		}
 	}
 	

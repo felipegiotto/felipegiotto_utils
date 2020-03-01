@@ -19,8 +19,6 @@ import com.felipegiotto.utils.exception.NotFoundException;
 /**
  * Classe para ler e gravar dados em arquivos ".properties"
  * 
- * TODO: Testes unitarios
- * 
  * TODO: Implementar keySet, propertyNames (ver qual funciona de acordo com o esperado)
  * 
  * @author felipegiotto@gmail.com
@@ -162,8 +160,10 @@ public class FGProperties {
 	}
 	
 	public void remove(String key) {
-		properties.remove(key);
-		changed = true;
+		if (properties.containsKey(key)) {
+			properties.remove(key);
+			changed = true;
+		}
 	}
 	
 	/*********************** String ***********************/
@@ -177,8 +177,14 @@ public class FGProperties {
 	 * @param value
 	 */
 	public void setString(String key, String value) {
-		properties.setProperty(key, value != null ? value : NULL_VALUE);
-		changed = true;
+		String newValue = value != null ? value : NULL_VALUE;
+		
+		// Grava somente se mudou em relação ao anterior, para setar o "changed" somente
+		// se houve, efetivamente, alguma mudança.
+		if (!newValue.equals(properties.getProperty(key))) {
+			properties.setProperty(key, newValue);
+			changed = true;
+		}
 	}
 	
 	/**
@@ -243,8 +249,7 @@ public class FGProperties {
 	 * @param value
 	 */
 	public void setInt(String key, Integer value) {
-		properties.setProperty(key, value != null ? Integer.toString(value) : NULL_VALUE);
-		changed = true;
+		setString(key, value != null ? Integer.toString(value) : NULL_VALUE);
 	}
 	
 	/**
@@ -309,7 +314,7 @@ public class FGProperties {
 	 * @param value
 	 */
 	public void setLong(String key, Long value) {
-		properties.setProperty(key, value != null ? Long.toString(value) : NULL_VALUE);
+		setString(key, value != null ? Long.toString(value) : NULL_VALUE);
 		changed = true;
 	}
 	
@@ -375,8 +380,7 @@ public class FGProperties {
 	 * @param value
 	 */
 	public void setDouble(String key, Double value) {
-		properties.setProperty(key, value != null ? Double.toString(value) : NULL_VALUE);
-		changed = true;
+		setString(key, value != null ? Double.toString(value) : NULL_VALUE);
 	}
 	
 	/**
@@ -441,7 +445,7 @@ public class FGProperties {
 	 * @param value
 	 */
 	public void setFloat(String key, Float value) {
-		properties.setProperty(key, value != null ? Float.toString(value) : NULL_VALUE);
+		setString(key, value != null ? Float.toString(value) : NULL_VALUE);
 		changed = true;
 	}
 	

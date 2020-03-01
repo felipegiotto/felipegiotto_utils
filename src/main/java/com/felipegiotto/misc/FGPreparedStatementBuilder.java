@@ -1,5 +1,6 @@
 package com.felipegiotto.misc;
 
+import java.sql.Array;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -60,6 +61,9 @@ public class FGPreparedStatementBuilder {
 					
 				} else if (param instanceof Long) {
 					ps.setLong(index++, (Long) param);
+					
+				} else if (param instanceof Array) {
+					ps.setArray(index++, (Array) param);
 					
 				} else {
 					throw new SQLException("Tipo de dado ainda não implementado em FGPreparedStatementBuilder: " + (param != null ? param.getClass() : "null"));

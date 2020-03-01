@@ -53,6 +53,14 @@ public class FGPropertiesTest {
 		assertTrue(p.containsKey(CHAVE));
 		assertEquals("11", p.getString(CHAVE));
 		assertEquals(11, p.getInt(CHAVE).intValue());
+		
+		// Testa atributo "changed"
+		assertEquals(false, p.isChanged());
+		p.setInt(CHAVE, 12);
+		assertEquals(true, p.isChanged());
+		p.saveIfModified();
+		p.setInt(CHAVE, 12);
+		assertEquals(false, p.isChanged());
 	}
 	
 	@Test
@@ -84,6 +92,14 @@ public class FGPropertiesTest {
 		assertTrue(p.containsKey(CHAVE));
 		assertEquals("11.5", p.getString(CHAVE));
 		assertEquals(11.5, p.getDouble(CHAVE).doubleValue(), 0.001);
+		
+		// Testa atributo "changed"
+		assertEquals(false, p.isChanged());
+		p.setDouble(CHAVE, 12.5);
+		assertEquals(true, p.isChanged());
+		p.saveIfModified();
+		p.setDouble(CHAVE, 12.5);
+		assertEquals(false, p.isChanged());
 	}
 	
 	@Test
@@ -110,6 +126,14 @@ public class FGPropertiesTest {
 		p = new FGProperties(propertiesFile.toPath(), false);
 		assertTrue(p.containsKey(CHAVE));
 		assertEquals("valor", p.getString(CHAVE));
+		
+		// Testa atributo "changed"
+		assertEquals(false, p.isChanged());
+		p.setString(CHAVE, "valor 2");
+		assertEquals(true, p.isChanged());
+		p.saveIfModified();
+		p.setString(CHAVE, "valor 2");
+		assertEquals(false, p.isChanged());
 	}
 	
 	@Test
@@ -128,5 +152,24 @@ public class FGPropertiesTest {
 		assertTrue(p.containsKey("C1"));
 		assertEquals("L1\n\nL2ÁÇ\n<br />", p.getString("C1"));
 		assertEquals("L1\\n\\nL2ÁÇ\\n<br />", p.getString("C2"));
+	}
+	
+	@Test
+	public void remove() throws IOException {
+		FGProperties p = new FGProperties(propertiesFile.toPath(), false);
+		assertFalse(p.containsKey(CHAVE));
+		
+		p.setString(CHAVE, "valor");
+		assertTrue(p.isChanged());
+		p.saveIfModified();
+		assertFalse(p.isChanged());
+		
+		p.remove(CHAVE);
+		assertTrue(p.isChanged());
+		p.saveIfModified();
+		assertFalse(p.isChanged());
+		
+		p.remove(CHAVE);
+		assertFalse(p.isChanged());
 	}
 }

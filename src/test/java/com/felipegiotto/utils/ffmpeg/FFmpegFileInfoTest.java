@@ -92,6 +92,13 @@ public class FFmpegFileInfoTest {
 	}
 
 	@Test
+	public void getCreationDateVideoComDataZero() throws Exception {
+		FFmpegFileInfo fileInfo = getFileInfoComCache("video_data_zero.txt");
+		
+		assertEquals(null, fileInfo.getCreationDateTime(false));
+	}
+	
+	@Test
 	public void getCreationTimeIphoneX() throws Exception {
 		FFmpegFileInfo fileInfo = getFileInfoComCache("video_iphone_com_creation_time.txt");
 		
