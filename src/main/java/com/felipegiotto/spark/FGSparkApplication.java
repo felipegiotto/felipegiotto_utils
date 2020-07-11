@@ -8,6 +8,8 @@ import static spark.Spark.options;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringEscapeUtils;
+
 import com.google.gson.Gson;
 
 import spark.ExceptionHandler;
@@ -129,13 +131,26 @@ public abstract class FGSparkApplication implements SparkApplication {
 		
 		if (mensagem != null) {
 			response.status(500);
-			response.header("Content-type", "application/json");
-			Map<String, String> json = new HashMap<>();
-			json.put("mensagem", mensagem);
-			response.body(this.gson.toJson(json));
+			
+			if (isHeaderAcceptJson(request)) {
+				response.header("Content-type", "application/json; charset=UTF-8");
+				Map<String, String> json = new HashMap<>();
+				json.put("mensagem", mensagem);
+				response.body(this.gson.toJson(json));
+			} else {
+				StringBuilder html = new StringBuilder();
+				html.append("<h1>Erro</h1>\n");
+				html.append("<h2>" + StringEscapeUtils.escapeHtml4(mensagem) + "</h2>\n");
+				response.body(html.toString());
+			}
 		}
 	}
 	
+	private boolean isHeaderAcceptJson(Request request) {
+		String header = request.headers("Accept");
+		return header != null && header.toLowerCase().contains("/json");
+	}
+
 	/**
 	 * Solução de contorno para que o tratamento de exceptions funcione corretamente
 	 * dentro do Tomcat. É preciso duplicar a rotina de tratamento em "exception" e

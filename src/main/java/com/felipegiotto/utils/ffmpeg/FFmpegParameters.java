@@ -789,7 +789,7 @@ public class FFmpegParameters {
 //		}
 		// TODO: Melhorar, voltando para um esquema parecido com o anterior, com "ganhoLuminosidade", mas utilizando as curvas em vez de "lutyuv"
 		if (videoLuminosidadeMaisClara) {
-			allVideoFilters.add("curves=r='0/0.1 0.3/0.5 1/1':g='0/0.1 0.3/0.5 1/1':b='0/0.1 0.3/0.5 1/1'");
+			allVideoFilters.add("curves=all='0/0.1 0.3/0.5 1/1'");
 		}
 		if (videoCropRectangle != null) {
 			allVideoFilters.add("crop=" + ((int) videoCropRectangle.getWidth()) + ":" + ((int) videoCropRectangle.getHeight()) + 
@@ -856,6 +856,15 @@ public class FFmpegParameters {
 		// Copiar metadados para destino
 		if (videoCopiarMetadados) {
 			commands.add("-map_metadata");
+			commands.add("0");
+		}
+		
+		// Se não é para mudar o FPS, adiciona "-vsync 0", para evitar problema de vídeos com framerate
+		// variável que ficam com FPS muito diferente (ex: vídeo original "24.26 fps, 120 tbr", ao ser
+		// decodificado, fica "120 fps, 120 tbr")
+		// Fonte: https://superuser.com/questions/1307863/why-is-ffmpeg-changing-framerate-from-60-to-120
+		if (videoFPS == null) {
+			commands.add("-vsync");
 			commands.add("0");
 		}
 		

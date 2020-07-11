@@ -33,6 +33,12 @@ public class FFmpegCommand {
 	}
 	
 	public static String getFFmpegPath() {
+		
+		// Verifica se o executável do ffmpeg foi configurado
+		if (FFmpegPath == null || !new File(FFmpegPath).exists()) {
+			throw new RuntimeException("Parâmetro 'FFmpegPath' não foi configurado corretamente em FFmpegCommand, pois arquivo não existe: " + FFmpegPath);
+	
+		}
 		return FFmpegPath;
 	}
 
@@ -129,11 +135,6 @@ public class FFmpegCommand {
 
 	public ArrayList<String> buildParameters() throws IOException, FFmpegException {
 		
-		// Verifica se o executável do ffmpeg foi configurado
-		if (FFmpegPath == null || !new File(FFmpegPath).exists()) {
-			throw new IOException("Parâmetro 'FFmpegPath' não foi configurado corretamente em FFmpegCommand, pois arquivo não existe: " + FFmpegPath);
-		}
-		
 		ArrayList<String> commands = new ArrayList<>();
 		
 		// Prioridade (valor 'nice')
@@ -148,7 +149,7 @@ public class FFmpegCommand {
 		}
 		
 		// Comando ffmpeg
-		commands.add(FFmpegPath);
+		commands.add(getFFmpegPath());
 		
 		// Arquivos de entrada
 		if (inputFiles.size() == 0) {

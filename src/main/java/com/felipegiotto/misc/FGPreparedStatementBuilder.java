@@ -4,6 +4,8 @@ import java.sql.Array;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -58,6 +60,12 @@ public class FGPreparedStatementBuilder {
 					
 				} else if (param instanceof Integer) {
 					ps.setInt(index++, (Integer) param);
+					
+				} else if (param instanceof LocalDateTime) {
+					ps.setObject(index++, param);
+					
+				} else if (param instanceof LocalDate) {
+					ps.setObject(index++, param);
 					
 				} else if (param instanceof Long) {
 					ps.setLong(index++, (Long) param);
