@@ -32,6 +32,18 @@ public class FGFileUtils {
 		}
 	}
 
+	public static void garantirQueArquivoExista(Path in) throws IOException {
+		if (!Files.isRegularFile(in)) {
+			throw new IOException("Arquivo não existe: " + in);
+		}
+	}
+	
+	
+	public static void garantirQueArquivoExista(File pasta) throws IOException {
+		if (!pasta.isFile()) {
+			throw new IOException("Arquivo não existe: " + pasta);
+		}
+	}
 	
 	public static void garantirQueArquivoOuPastaExista(File arquivo) throws IOException {
 		if (!arquivo.exists()) {
