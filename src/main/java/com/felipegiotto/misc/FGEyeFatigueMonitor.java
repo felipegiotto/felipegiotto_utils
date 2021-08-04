@@ -1,5 +1,6 @@
 package com.felipegiotto.misc;
 
+import java.awt.EventQueue;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
@@ -35,7 +36,7 @@ public class FGEyeFatigueMonitor {
 	private JButton button;
 
 	public static void main(String[] args) throws InterruptedException {
-		int minutos = FGInterativoUtils.perguntarNumeroInteiroParaUsuario("Qual o intervalo (em minutos) entre cada pausa?", false, (numero) -> numero > 0);
+		int minutos = FGInterativoUtils.perguntarNumeroInteiroParaUsuario("Qual o intervalo (em minutos) entre cada pausa?", false, (numero) -> numero >= 0);
 		FGEyeFatigueMonitor m = new FGEyeFatigueMonitor(minutos);
 		m.start();
 	}
@@ -89,25 +90,48 @@ public class FGEyeFatigueMonitor {
 		}
 	}
 
-	private static void hideWindow(JFrame frame) {
+	private void hideWindow(JFrame frame) {
+		if (manipulaJanela != null) {
+			manipulaJanela.interrupt();
+		}
 		frame.setVisible(false);
 	}
 
+	private Thread manipulaJanela;
+	
 	private void showWindow(JFrame frame) {
 		System.out.println("Take a break now!");
 
 		// Habilita o botão somente alguns segundos depois, para evitar acionamentos acidentais.
-		button.setEnabled(false);
-		new Thread(new Runnable() {
+		manipulaJanela = new Thread(new Runnable() {
 			@Override
 			public void run() {
 				try {
-					Thread.sleep(5_000);
+					while (!manipulaJanela.isInterrupted()) {
+						button.setEnabled(false);
+						
+						// Mostra a janela novamente, caso tenha sido minimizada ou mandada para trás
+						EventQueue.invokeLater(new Runnable() {
+						    @Override
+						    public void run() {
+						    	frame.setState(java.awt.Frame.NORMAL); // "desminimiza" a tela
+						    	frame.toFront();
+						    	frame.repaint();
+						    }
+						});
+						
+						// Habilita o botão de sair somente depois de 5s, para evitar cliques acidentais
+						Thread.sleep(5_000);
+						button.setEnabled(true);
+					
+						// Depois de 5 minutos, começa novamente.
+						Thread.sleep(5 * 60_000);
+					}
 				} catch (InterruptedException e) {
 				}
-				button.setEnabled(true);
 			}
-		}).start();
+		});
+		manipulaJanela.start();
 
 		// Exibe a janela
 		frame.pack();
