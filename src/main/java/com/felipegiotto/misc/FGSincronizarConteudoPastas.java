@@ -122,7 +122,10 @@ public class FGSincronizarConteudoPastas {
 			public boolean accept(Path entry) throws IOException {
 				String name = entry.getFileName().toString();
 				String nameLower = name.toLowerCase();
-				if (name.equals(".DS_Store") || name.equals("iPod Photo Cache") || nameLower.contains("icon?")) {
+				if (name.equals(".Trash") 
+						|| name.equals(".DS_Store") 
+						|| name.equals("iPod Photo Cache") 
+						|| nameLower.contains("icon?")) {
 					return false;
 				}
 
@@ -139,11 +142,23 @@ public class FGSincronizarConteudoPastas {
 		if (!Files.isDirectory(pastaOrigem)) {
 			throw new IOException(nome + "Pasta de origem não existe: " + pastaOrigem);
 		}
+		
+		// Tenta ler a raiz e o primeiro nível de pastas, para garantir que o MacOS
+		// solicite permissão para todas as pastas filhas.
+		// OBS: precisa disso pois o MacOS solicita permissões especiais para acessar 
+		// as pastas "Documentos", "Downloads", "Pictures", etc...
 		try (DirectoryStream<Path> filhosOrigem = Files.newDirectoryStream(pastaOrigem, globalFileFilter)) {
 			boolean conseguiuLerAlgumFilho = false;
-			for (@SuppressWarnings("unused") Path entry : filhosOrigem) {
+			for (Path filho : filhosOrigem) {
 				conseguiuLerAlgumFilho = true;
-				break;
+				
+				if (Files.isDirectory(filho)) {
+					try (DirectoryStream<Path> netos = Files.newDirectoryStream(filho, globalFileFilter)) {
+						for (@SuppressWarnings("unused") Path neto : netos) {
+							// System.out.println(neto);
+						}
+					}
+				}
 			}
 			if (!conseguiuLerAlgumFilho) {
 				throw new IOException(nome + "Pasta de origem não pode ser lida ou está vazia: " + pastaOrigem);
