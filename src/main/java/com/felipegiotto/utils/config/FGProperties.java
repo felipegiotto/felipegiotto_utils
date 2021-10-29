@@ -20,6 +20,7 @@ import com.felipegiotto.utils.exception.NotFoundException;
  * Classe para ler e gravar dados em arquivos ".properties"
  * 
  * TODO: Implementar keySet, propertyNames (ver qual funciona de acordo com o esperado)
+ * TODO: Implementar método "reload"
  * 
  * @author felipegiotto@gmail.com
  */
