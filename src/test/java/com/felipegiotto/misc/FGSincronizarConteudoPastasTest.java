@@ -8,6 +8,9 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Path;
+import java.nio.file.attribute.FileTime;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -170,5 +173,46 @@ public class FGSincronizarConteudoPastasTest {
 		// Confere se o destino voltou a ser como era
 		assertTrue(arquivoDestino.isFile());
 		assertTrue(pastaDestino.isDirectory());
+	}
+	
+	@Test
+	public void testSincronizarArquivosConformeData() throws Exception {
+		File origem = new File("tmp/testSincronizarArquivosConformeData/origem");
+		File destino = new File("tmp/testSincronizarArquivosConformeData/destino");
+		FileUtils.deleteQuietly(origem);
+		FileUtils.deleteQuietly(destino);
+		origem.mkdirs();
+		destino.mkdirs();
+		
+		// Cria um arquivo
+		File arquivoOrigem = new File(origem, "arquivo1");
+		arquivoOrigem.createNewFile();
+				
+		FGSincronizarConteudoPastas s = new FGSincronizarConteudoPastas(origem.toPath(), destino.toPath());
+		
+		verificarSeAcusaDataDiferente(true, LocalDateTime.of(2001, 1, 1, 1, 1), LocalDateTime.of(2002, 2, 2, 2, 2), "Dias diferentes", s);
+		verificarSeAcusaDataDiferente(true, LocalDateTime.of(2001, 1, 1, 0, 0, 0), LocalDateTime.of(2001, 1, 1, 0, 0, 5), "5 minutos de diferença", s);
+		
+		// Diferenças muito pequenas (5ms, com parâmetro para configurar)
+		verificarSeAcusaDataDiferente(true,  LocalDateTime.of(2001, 1, 1, 0, 0, 0, 0), LocalDateTime.of(2001, 1, 1, 0, 0, 0, 5000000), "5ms de diferença", s);
+		s.setToleranciaMaximaDataModificacaoMillis(6);
+		verificarSeAcusaDataDiferente(false, LocalDateTime.of(2001, 1, 1, 0, 0, 0, 0), LocalDateTime.of(2001, 1, 1, 0, 0, 0, 5000000), "5ms de diferença", s);
+		s.setToleranciaMaximaDataModificacaoMillis(0);
+		
+		verificarSeAcusaDataDiferente(false, LocalDateTime.of(2001, 1, 1, 1, 1), LocalDateTime.of(2001, 1, 1, 1, 1), "Exatamente igual", s);
+		verificarSeAcusaDataDiferente(false, LocalDateTime.of(2001, 1, 1, 3, 0, 0), LocalDateTime.of(2001, 1, 1, 4, 0, 0), "Exatamente uma hora de diferença (timezone)", s);
+		
+		// 55ms de diferença, mais a diferença de timezones (6h entre a hora identificada no Mac e no Windows)
+		// Data de modificacao diferente (2011-12-09T11:39:40.0556Z - 2011-12-09T17:39:40Z - Diferenca de 05:59:59.945): T:\ComBackup\Digitalizacoes e Comprovantes Antigos\Antigos\2011 - Apartamento 812 - Granada - Porto Alegre - Imobiliaria Guarida\2011-02-16 - Vistoria.pdf
+		verificarSeAcusaDataDiferente(true,  LocalDateTime.of(2016, 10, 19, 3, 46, 2, 55600000), LocalDateTime.of(2016, 10, 19, 9, 46, 2, 0), "Diferença em timezone+milisegundos (windows/mac)", s);
+		s.setToleranciaMaximaDataModificacaoMillis(55);
+		verificarSeAcusaDataDiferente(false, LocalDateTime.of(2016, 10, 19, 3, 46, 2, 55600000), LocalDateTime.of(2016, 10, 19, 9, 46, 2, 0), "Diferença em timezone+milisegundos (windows/mac)", s);
+		s.setToleranciaMaximaDataModificacaoMillis(0);
+	}
+
+	private void verificarSeAcusaDataDiferente(boolean deveSerDiferente, LocalDateTime data1, LocalDateTime data2, String explicacao, FGSincronizarConteudoPastas sincronizador) {
+		long millisData1 = data1.toInstant(ZoneOffset.UTC).toEpochMilli();
+		long millisData2 = data2.toInstant(ZoneOffset.UTC).toEpochMilli();
+		assertEquals(explicacao, deveSerDiferente, sincronizador.deveSincronizarPorTeremDatasDiferentes(FileTime.fromMillis(millisData1), FileTime.fromMillis(millisData2), explicacao));
 	}
 }

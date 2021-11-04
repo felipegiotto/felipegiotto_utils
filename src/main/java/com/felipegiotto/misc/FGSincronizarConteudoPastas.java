@@ -4,9 +4,11 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.AccessDeniedException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.FileStore;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.FileTime;
@@ -94,20 +96,21 @@ public class FGSincronizarConteudoPastas {
 	private StopWatch tempoExecucao;
 	private StopWatch tempoManipulandoArquivos;
 
-	public FGSincronizarConteudoPastas(String nome, Path pastaOrigem, Path pastaDestino) throws IOException {
-		init(nome + " - ", pastaOrigem, pastaDestino);
+	public FGSincronizarConteudoPastas(String nome, Path pastaOrigem, Path pastaDestino, DirectoryStream.Filter<Path> customFileFilter) throws IOException {
+		init(nome + " - ", pastaOrigem, pastaDestino, customFileFilter);
 	}
 
 	public FGSincronizarConteudoPastas(Path pastaOrigem, Path pastaDestino) throws IOException {
-		init("", pastaOrigem, pastaDestino);
+		init("", pastaOrigem, pastaDestino, null);
 	}
 
 	private static final Pattern pArquivoBackup = Pattern.compile("\\.bk\\d{12}$");
 	
-	private void init(String nome, Path pastaOrigem, Path pastaDestino) throws IOException {
+	private void init(String nome, Path pastaOrigem, Path pastaDestino, DirectoryStream.Filter<Path> customFileFilter) throws IOException {
 		this.pastaOrigem = pastaOrigem;
 		this.pastaDestino = pastaDestino;
 		this.nome = nome;
+		this.customFileFilter = customFileFilter;
 
 		// Carrega estatisticas da ultima execucao
 		FGProperties estatisticasUltimaExecucao = new FGProperties(arquivoEstatisticas.toPath(), false);
@@ -149,16 +152,27 @@ public class FGSincronizarConteudoPastas {
 		// as pastas "Documentos", "Downloads", "Pictures", etc...
 		try (DirectoryStream<Path> filhosOrigem = Files.newDirectoryStream(pastaOrigem, globalFileFilter)) {
 			boolean conseguiuLerAlgumFilho = false;
+			List<String> filhosQueNaoPuderamSerLidos = new ArrayList<String>();
 			for (Path filho : filhosOrigem) {
 				conseguiuLerAlgumFilho = true;
 				
+				if (customFileFilter != null && !customFileFilter.accept(filho)) {
+					continue;
+				}
+
 				if (Files.isDirectory(filho)) {
 					try (DirectoryStream<Path> netos = Files.newDirectoryStream(filho, globalFileFilter)) {
+						// LOGGER.info("Pasta lida: " + filho);
 						for (@SuppressWarnings("unused") Path neto : netos) {
 							// System.out.println(neto);
 						}
+					} catch (AccessDeniedException ex) {
+						filhosQueNaoPuderamSerLidos.add(filho.getFileName().toString());
 					}
 				}
+			}
+			if (!filhosQueNaoPuderamSerLidos.isEmpty()) {
+				throw new IOException(nome + "Filhos não puderam ser lidos: " + StringUtils.join(filhosQueNaoPuderamSerLidos, "; "));	
 			}
 			if (!conseguiuLerAlgumFilho) {
 				throw new IOException(nome + "Pasta de origem não pode ser lida ou está vazia: " + pastaOrigem);
@@ -281,7 +295,14 @@ public class FGSincronizarConteudoPastas {
 				// para evitar este tipo de problema.
 				pastaDeveExistir(origem);
 
-				Path filhoDestino = Paths.get(destino.toString(), filhoOrigem.getFileName().toString());
+				Path filhoDestino;
+				try {
+					filhoDestino = Paths.get(destino.toString(), filhoOrigem.getFileName().toString());
+				} catch (InvalidPathException ex) {
+					// Ex: Illegal char <|> at index 25: J:\BackupsFelipe\Arquivo | Jus Navigandi.pdf
+					logarErroArquivo(ex.getClass().getName() + ": " + ex.getLocalizedMessage(), destino + "\\" + filhoOrigem, ex);
+					continue;
+				}
 
 				if (Files.isSymbolicLink(filhoOrigem)) {
 					LOGGER.debug(nome + "Ignorando link simbolico: " + filhoOrigem);
@@ -304,12 +325,7 @@ public class FGSincronizarConteudoPastas {
 								Files.createDirectories(filhoDestino);
 							}
 						} catch (IOException ex) {
-							qtdErros++;
-							String erro = "Erro criando pasta '" + filhoDestino + "': " + ex.getLocalizedMessage();
-							if (erros.size() < 100) {
-								erros.add(erro);
-							}
-							LOGGER.error(nome + erro, ex);
+							logarErroArquivo("Erro criando pasta '" + filhoDestino + "': " + ex.getLocalizedMessage(), filhoDestino.toString(), ex);
 							continue;
 						}
 					}
@@ -333,15 +349,7 @@ public class FGSincronizarConteudoPastas {
 								
 								copiarArquivoSetarAtributos(filhoOrigem, filhoDestino);
 							} catch (IOException ex) {
-								qtdErros++;
-								if (erros.size() < 100) {
-									String erro = ex.getClass().getName() + ": " + ex.getLocalizedMessage();
-									if (!erro.contains(filhoOrigem.toString())) {
-										erro += " - " + filhoOrigem;
-									}
-									erros.add(erro);
-								}
-								LOGGER.error(nome + ex.getLocalizedMessage() + ": " + filhoOrigem, ex);
+								logarErroArquivo(ex.getClass().getName() + ": " + ex.getLocalizedMessage(), filhoOrigem.toString(), ex);
 							} finally {
 								arquivoSendoCopiadoAgora = null;
 							}
@@ -370,10 +378,24 @@ public class FGSincronizarConteudoPastas {
 					LOGGER.warn(nome + "Não sei o que é este arquivo: " + filhoOrigem);
 				}
 			}
+			
+		} catch (AccessDeniedException ex) {
+			logarErroArquivo(ex.getClass().getName() + ": " + ex.getLocalizedMessage(), origem.toString(), ex);
 		}
 
 		totalPastasConferidas++;
 		pastaSendoCopiadaAgora = pastaSendoCopiadaAntes;
+	}
+
+	private void logarErroArquivo(String mensagem, String arquivo, Exception ex) {
+		qtdErros++;
+		if (erros.size() < 100) {
+			if (!mensagem.contains(arquivo)) {
+				mensagem += " - " + arquivo;
+			}
+			erros.add(mensagem);
+		}
+		LOGGER.error(nome + mensagem, ex);
 	}
 
 	/**
@@ -611,26 +633,49 @@ public class FGSincronizarConteudoPastas {
 			}
 		}
 
-		// Por causa de diferentes configurações de timezone, arquivos podem
-		// estar sincronizados e possuir várias horas de diferença (já encontrei até 6
-		// horas).
-		// Por isso, vou usar a seguinte regra:
-		// 1. Se a diferença for maior que 10 horas, sincroniza.
-		// 2. Se a diferença for menor que 10 horas mas todos os outros campos
-		// forem iguais (até o milisegundo), considera que arquivo está OK.
 		if (deveCopiarArquivoSeDatasForemDiferentes) {
 			FileTime origemTime = Files.getLastModifiedTime(origem);
 			FileTime destinoTime = Files.getLastModifiedTime(destino);
-			long diferencaTotal = Math.abs(origemTime.toMillis() - destinoTime.toMillis());
-			long diferencaEmHoras = diferencaTotal / (60 * 60 * 1000);
-			long restoDiferencaEmHoras = diferencaTotal % (60 * 60 * 1000);
-			if ((diferencaTotal > toleranciaMaximaDataModificacaoMillis) && (diferencaEmHoras > 10 || restoDiferencaEmHoras > 0)) {
-				LOGGER.info(nome + "Data de modificacao diferente (" + origemTime + " - " + destinoTime + " - Diferenca de "
-						+ DurationFormatUtils.formatDurationHMS(diferencaTotal) + "): " + origem);
+			if (deveSincronizarPorTeremDatasDiferentes(origemTime, destinoTime, origem.toString())) {
 				return true;
 			}
 		}
 
+		return false;
+	}
+
+	/**
+	 * Por causa de diferentes configurações de timezone, arquivos podem
+	 * estar sincronizados e possuir várias horas de diferença (já encontrei até 6 horas).
+	 * 
+	 * Por isso, vou usar a seguinte regra:
+	 * 1. Se a diferença for maior que 10 horas, sincroniza.
+	 * 2. Se a diferença for menor que 10 horas mas todos os outros campos
+	 *    forem iguais (até o segundo), considera que arquivo está OK.
+	 * @param origemMillis
+	 * @param destinoMillis
+	 * @return
+	 */
+	public boolean deveSincronizarPorTeremDatasDiferentes(FileTime origemTime, FileTime destinoTime, String descricaoOrigem) {
+		
+		long diferencaTotal = Math.abs(origemTime.toMillis() - destinoTime.toMillis());
+		if (diferencaTotal < toleranciaMaximaDataModificacaoMillis) return false;
+		
+		long diferencaEmHoras = diferencaTotal / (60 * 60 * 1000);
+		if (diferencaEmHoras > 10) {
+			LOGGER.info(nome + "Data de modificacao diferente (" + origemTime + " - " + destinoTime + " - Diferenca de "
+					+ DurationFormatUtils.formatDurationHMS(diferencaTotal) + "): " + descricaoOrigem);
+			return true;
+		}
+		
+		// Resto pode ser para cima ou para baixo
+		long restoDiferencaEmHoras = diferencaTotal % (60 * 60 * 1000);
+		restoDiferencaEmHoras = Math.min(Math.abs(restoDiferencaEmHoras), Math.abs(60 * 60 * 1000 - restoDiferencaEmHoras));
+		if (restoDiferencaEmHoras > toleranciaMaximaDataModificacaoMillis) {
+			LOGGER.info(nome + "Data de modificacao diferente (" + origemTime + " - " + destinoTime + " - Diferenca de "
+					+ DurationFormatUtils.formatDurationHMS(diferencaTotal) + "): " + descricaoOrigem);
+			return true;
+		}
 		return false;
 	}
 
