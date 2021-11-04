@@ -332,7 +332,9 @@ public class FGSincronizarConteudoPastas {
 					processarRecursivamente(filhoOrigem, filhoDestino);
 
 				} else if (Files.isRegularFile(filhoOrigem)) {
-					if (Files.isReadable(filhoOrigem)) {
+					
+					// Removi essa verificação pois, no Windows, ele tenta ler o arquivo inteiro:
+//					if (Files.isReadable(filhoOrigem)) {
 						long tamanhoFilhoOrigem = Files.size(filhoOrigem);
 						totalBytesArquivosOrigem += tamanhoFilhoOrigem;
 						qtdArquivosOrigem++;
@@ -362,13 +364,13 @@ public class FGSincronizarConteudoPastas {
 							listaDeArquivosSincronizadosOrigem.add(filhoOrigem);
 						}
 
-					} else {
-						qtdWarnings++;
-						if (warnings.size() < 100) {
-							warnings.add("Não consigo ler: " + filhoOrigem);
-						}
-						LOGGER.warn(nome + "Não consigo ler: " + filhoOrigem);
-					}
+//					} else {
+//						qtdWarnings++;
+//						if (warnings.size() < 100) {
+//							warnings.add("Não consigo ler: " + filhoOrigem);
+//						}
+//						LOGGER.warn(nome + "Não consigo ler: " + filhoOrigem);
+//					}
 
 				} else {
 					qtdWarnings++;
