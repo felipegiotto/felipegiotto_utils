@@ -117,6 +117,8 @@ public class FFmpegFileInfo {
 	private static final Pattern pTimestamp4 = Pattern.compile("^(\\d{4})$");
 	// Ex: "date            : 20171221"
 	private static final Pattern pTimestamp5 = Pattern.compile("^(\\d{4})(\\d{2})(\\d{2})$");
+	// Ex: "date            : 2019-03-22"
+	private static final Pattern pTimestamp6 = Pattern.compile("^(\\d{4})-(\\d{2})-(\\d{2})$");
 	
 	/**
 	 * Converte um timestamp (string) para Date/time.
@@ -169,6 +171,11 @@ public class FFmpegFileInfo {
 		}
 
 		m = pTimestamp5.matcher(input);
+		if (m.find()) {
+			return LocalDateTime.of(Integer.parseInt(m.group(1)), Integer.parseInt(m.group(2)), Integer.parseInt(m.group(3)), 0, 0, 0);
+		}
+		
+		m = pTimestamp6.matcher(input);
 		if (m.find()) {
 			return LocalDateTime.of(Integer.parseInt(m.group(1)), Integer.parseInt(m.group(2)), Integer.parseInt(m.group(3)), 0, 0, 0);
 		}

@@ -235,13 +235,16 @@ public class FFmpegCommand {
 
 		filename = filename.toUpperCase();
 
-		return filename.endsWith(".AVI")
-				|| filename.endsWith(".MKV")
-				|| filename.endsWith(".MP4")
-				|| filename.endsWith(".M4V") 
-				|| filename.endsWith(".WMV") 
+		return false
+				|| filename.endsWith(".AVI")
 				|| filename.endsWith(".FLV") 
+				|| filename.endsWith(".MKV")
+				|| filename.endsWith(".MOV")
+				|| filename.endsWith(".MP4")
+				|| filename.endsWith(".MTS")
+				|| filename.endsWith(".M4V") 
 				|| filename.endsWith(".RMVB") 
-				|| filename.endsWith(".MOV");
+				|| filename.endsWith(".WMV") 
+				;
 	}
 }

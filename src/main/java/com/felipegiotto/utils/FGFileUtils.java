@@ -27,8 +27,17 @@ public class FGFileUtils {
 	
 	
 	public static void garantirQuePastaExista(File pasta) throws IOException {
+		garantirQuePastaExista(pasta, null);
+	}
+	
+	public static void garantirQuePastaExista(File pasta, String mensagemComplementarException) throws IOException {
 		if (!pasta.isDirectory()) {
-			throw new IOException("Pasta não existe: " + pasta);
+			String mensagemCompleta = "Pasta não existe: \"" + pasta + ".\" ";
+			if (mensagemComplementarException != null)
+			{
+				mensagemCompleta += mensagemComplementarException;
+			}
+			throw new IOException(mensagemCompleta);
 		}
 	}
 

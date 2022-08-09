@@ -79,7 +79,8 @@ public class FGSincronizarConteudoPastas {
 	
 	// Variáveis para mostrar progresso:
 	private Path pastaSendoCopiadaAgora;
-	private Path arquivoSendoCopiadoAgora;
+	private String operacaoSendoRealizadaAgora;
+//	private Path arquivoSendoCopiadoAgora;
 	private long totalPastasConferidas = 0;
 	private long totalBytesArquivosCopiados = 0;
 	private long qtdArquivosOrigem = 0;
@@ -142,7 +143,7 @@ public class FGSincronizarConteudoPastas {
 			}
 		};
 
-		if (!Files.isDirectory(pastaOrigem)) {
+		if (!isDirectory(pastaOrigem)) {
 			throw new IOException(nome + "Pasta de origem não existe: " + pastaOrigem);
 		}
 		
@@ -150,6 +151,7 @@ public class FGSincronizarConteudoPastas {
 		// solicite permissão para todas as pastas filhas.
 		// OBS: precisa disso pois o MacOS solicita permissões especiais para acessar 
 		// as pastas "Documentos", "Downloads", "Pictures", etc...
+		operacaoSendoRealizadaAgora = "leitura inicial da estrutura de pastas";
 		try (DirectoryStream<Path> filhosOrigem = Files.newDirectoryStream(pastaOrigem, globalFileFilter)) {
 			boolean conseguiuLerAlgumFilho = false;
 			List<String> filhosQueNaoPuderamSerLidos = new ArrayList<String>();
@@ -160,7 +162,7 @@ public class FGSincronizarConteudoPastas {
 					continue;
 				}
 
-				if (Files.isDirectory(filho)) {
+				if (isDirectory(filho)) {
 					try (DirectoryStream<Path> netos = Files.newDirectoryStream(filho, globalFileFilter)) {
 						// LOGGER.info("Pasta lida: " + filho);
 						for (@SuppressWarnings("unused") Path neto : netos) {
@@ -178,8 +180,9 @@ public class FGSincronizarConteudoPastas {
 				throw new IOException(nome + "Pasta de origem não pode ser lida ou está vazia: " + pastaOrigem);
 			}
 		}
+		operacaoSendoRealizadaAgora = null;
 
-		if (!Files.isDirectory(pastaDestino)) {
+		if (!isDirectory(pastaDestino)) {
 			throw new IOException(nome + "Pasta de destino não existe: " + pastaDestino);
 		}
 		if (!Files.isWritable(pastaDestino)) {
@@ -280,11 +283,20 @@ public class FGSincronizarConteudoPastas {
 			excluirArquivosInexistentes(origem, destino);
 		}
 
-		try (DirectoryStream<Path> filhosOrigem = Files.newDirectoryStream(origem, this.globalFileFilter)) {
+		operacaoSendoRealizadaAgora = "Files.newDirectoryStream";
+		try (DirectoryStream<Path> filhosOrigemStream = Files.newDirectoryStream(origem, this.globalFileFilter)) {
 
+			operacaoSendoRealizadaAgora = "lendo filhos de Files.newDirectoryStream";
+			List<Path> filhosOrigem = new ArrayList<>();
+			for (Path filhoOrigem : filhosOrigemStream) {
+				filhosOrigem.add(filhoOrigem);
+			}
+			
 			for (Path filhoOrigem : filhosOrigem) {
 
-				if (customFileFilter != null && !customFileFilter.accept(filhoOrigem)) {
+				operacaoSendoRealizadaAgora = "processando customFileFilter";
+				boolean ignorar = customFileFilter != null && !customFileFilter.accept(filhoOrigem);
+				if (ignorar) {
 					LOGGER.debug(nome + "Ignorando " + filhoOrigem);
 					continue;
 				}
@@ -293,6 +305,7 @@ public class FGSincronizarConteudoPastas {
 				// "entendendo" que os filhos não existem mais na origem e apagando-os.
 				// Por isso, a cada verificação de arquivo filho, verifica se o "pai" continua existindo,
 				// para evitar este tipo de problema.
+				operacaoSendoRealizadaAgora = "verificando se pasta de origem existe";
 				pastaDeveExistir(origem);
 
 				Path filhoDestino;
@@ -304,25 +317,39 @@ public class FGSincronizarConteudoPastas {
 					continue;
 				}
 
+				operacaoSendoRealizadaAgora = "Files.isSymbolicLink";
 				if (Files.isSymbolicLink(filhoOrigem)) {
 					LOGGER.debug(nome + "Ignorando link simbolico: " + filhoOrigem);
+					continue;
+				}
 
-				} else if (Files.isDirectory(filhoOrigem)) {
+				operacaoSendoRealizadaAgora = "Files.isDirectory";
+				if (isDirectory(filhoOrigem)) {
 
 					if (!simulacao) {
 						
 						// Pode ocorrer de um arquivo passar a ser, posteriormente, uma pasta.
 						// Nesse caso, é preciso excluir (ou renomear) o backup antigo (que era um arquivo)
-						if (Files.isRegularFile(filhoDestino)) {
+						operacaoSendoRealizadaAgora = "Files.isRegularFile";
+						if (isRegularFile(filhoDestino)) {
 							if (preservarVersoesAntigasDeArquivos) {
+								
+								operacaoSendoRealizadaAgora = "renomearArquivoParaBackup";
 								renomearArquivoParaBackup(filhoDestino, true);
 							} else {
+								
+								operacaoSendoRealizadaAgora = "excluirRecursivamente";
 								excluirRecursivamente(filhoDestino);
 							}
 						}
+						operacaoSendoRealizadaAgora = null;
+						
 						try {
 							if (!deveCriarPastasSomenteSeHouverConteudo) {
+								
+								operacaoSendoRealizadaAgora = "Files.createDirectories";
 								Files.createDirectories(filhoDestino);
+								operacaoSendoRealizadaAgora = null;
 							}
 						} catch (IOException ex) {
 							logarErroArquivo("Erro criando pasta '" + filhoDestino + "': " + ex.getLocalizedMessage(), filhoDestino.toString(), ex);
@@ -330,30 +357,38 @@ public class FGSincronizarConteudoPastas {
 						}
 					}
 					processarRecursivamente(filhoOrigem, filhoDestino);
-
-				} else if (Files.isRegularFile(filhoOrigem)) {
+					continue;
+				}
+				
+				operacaoSendoRealizadaAgora = "Files.isRegularFile";
+				if (isRegularFile(filhoOrigem)) {
 					
 					// Removi essa verificação pois, no Windows, ele tenta ler o arquivo inteiro:
 //					if (Files.isReadable(filhoOrigem)) {
+						operacaoSendoRealizadaAgora = "Files.size(" + filhoOrigem + ")";
 						long tamanhoFilhoOrigem = Files.size(filhoOrigem);
 						totalBytesArquivosOrigem += tamanhoFilhoOrigem;
 						qtdArquivosOrigem++;
 
+						operacaoSendoRealizadaAgora = "deveSicronizarArquivo(" + filhoOrigem + ")";
 						if (deveSicronizarArquivo(filhoOrigem, filhoDestino)) {
 							try {
-								arquivoSendoCopiadoAgora = filhoDestino;
 								
 								if (preservarVersoesAntigasDeArquivos) {
+									operacaoSendoRealizadaAgora = "renomearArquivoParaBackup(" + filhoDestino + ")";
 									renomearArquivoParaBackup(filhoDestino, true);
+									
 								} else {
+									operacaoSendoRealizadaAgora = "excluirRecursivamente(" + filhoDestino + ")";
 									excluirRecursivamente(filhoDestino);
 								}
 								
+								operacaoSendoRealizadaAgora = "copiarArquivoSetarAtributos(" + filhoOrigem + ")";
 								copiarArquivoSetarAtributos(filhoOrigem, filhoDestino);
 							} catch (IOException ex) {
 								logarErroArquivo(ex.getClass().getName() + ": " + ex.getLocalizedMessage(), filhoOrigem.toString(), ex);
 							} finally {
-								arquivoSendoCopiadoAgora = null;
+								operacaoSendoRealizadaAgora = null;
 							}
 
 						} else {
@@ -371,17 +406,19 @@ public class FGSincronizarConteudoPastas {
 //						}
 //						LOGGER.warn(nome + "Não consigo ler: " + filhoOrigem);
 //					}
-
-				} else {
-					qtdWarnings++;
-					if (warnings.size() < 100) {
-						warnings.add("Não sei o que é este arquivo: " + filhoOrigem);
-					}
-					LOGGER.warn(nome + "Não sei o que é este arquivo: " + filhoOrigem);
+					continue;
 				}
+				
+				operacaoSendoRealizadaAgora = null;
+				qtdWarnings++;
+				if (warnings.size() < 100) {
+					warnings.add("Não sei o que é este arquivo: " + filhoOrigem);
+				}
+				LOGGER.warn(nome + "Não sei o que é este arquivo: " + filhoOrigem);
 			}
 			
 		} catch (AccessDeniedException ex) {
+			operacaoSendoRealizadaAgora = null;
 			logarErroArquivo(ex.getClass().getName() + ": " + ex.getLocalizedMessage(), origem.toString(), ex);
 		}
 
@@ -408,13 +445,13 @@ public class FGSincronizarConteudoPastas {
 	 */
 	private void renomearArquivoParaBackup(Path arquivoPasta, boolean excluirSeNaoConseguirRenomear) throws IOException {
 		if (!simulacao && preservarVersoesAntigasDeArquivos) {
-			if (Files.exists(arquivoPasta)) {
+			if (arquivoPastaExiste(arquivoPasta)) {
 
 				Path arquivoBackup = Paths.get(arquivoPasta.toString() + sufixoBackupArquivosAntigos);
 
 				// Se já existe um backup antigo com o mesmo nome, exclui esse
 				// backup antes de renomear o original
-				if (Files.exists(arquivoBackup)) {
+				if (arquivoPastaExiste(arquivoBackup)) {
 					excluirRecursivamente(arquivoBackup);
 				}
 
@@ -461,7 +498,7 @@ public class FGSincronizarConteudoPastas {
 
 	private void pastaDeveExistir(Path origem) throws IOException {
 		
-		if (!Files.isDirectory(origem)) {
+		if (!isDirectory(origem)) {
 			throw new IOException("Pasta não existe mais: " + origem);
 		}
 	}
@@ -544,8 +581,8 @@ public class FGSincronizarConteudoPastas {
 		if (pastaSendoCopiadaAgora != null) {
 			sb.append(" " + pastaSendoCopiadaAgora);
 		}
-		if (arquivoSendoCopiadoAgora != null) {
-			sb.append("/" + arquivoSendoCopiadoAgora.getFileName());
+		if (operacaoSendoRealizadaAgora != null) {
+			sb.append(" (" + operacaoSendoRealizadaAgora + ")");
 		}
 		LOGGER.info(sb.toString());
 	}
@@ -621,14 +658,20 @@ public class FGSincronizarConteudoPastas {
 	
 	private boolean deveSicronizarArquivo(Path origem, Path destino) throws IOException {
 
-		if (!Files.exists(destino)) {
+		operacaoSendoRealizadaAgora = "deveSicronizarArquivo: arquivoPastaExiste(" + destino + ")";
+		boolean arquivoExiste = arquivoPastaExiste(destino);
+		operacaoSendoRealizadaAgora = "deveSicronizarArquivo";
+		if (!arquivoExiste) {
 			LOGGER.info(nome + "Destino não existe: " + destino);
 			return true;
 		}
 
 		if (deveCopiarArquivoSeTamanhosForemDiferentes) {
+			operacaoSendoRealizadaAgora = "deveSicronizarArquivo: Files.size(" + origem + ")";
 			long tamanhoOrigem = Files.size(origem);
+			operacaoSendoRealizadaAgora = "deveSicronizarArquivo: Files.size(" + destino + ")";
 			long tamanhoDestino = Files.size(destino);
+			operacaoSendoRealizadaAgora = "deveSicronizarArquivo";
 			if (tamanhoOrigem != tamanhoDestino) {
 				LOGGER.info(nome + "Tamanho diferente (" + dfBytes.format(tamanhoOrigem) + " - " + dfBytes.format(tamanhoDestino) + "): " + origem);
 				return true;
@@ -636,14 +679,35 @@ public class FGSincronizarConteudoPastas {
 		}
 
 		if (deveCopiarArquivoSeDatasForemDiferentes) {
+			operacaoSendoRealizadaAgora = "deveSicronizarArquivo: Files.getLastModifiedTime(" + origem + ")";
 			FileTime origemTime = Files.getLastModifiedTime(origem);
+			operacaoSendoRealizadaAgora = "deveSicronizarArquivo: Files.getLastModifiedTime(" + destino + ")";
 			FileTime destinoTime = Files.getLastModifiedTime(destino);
+			operacaoSendoRealizadaAgora = "deveSicronizarArquivo";
 			if (deveSincronizarPorTeremDatasDiferentes(origemTime, destinoTime, origem.toString())) {
 				return true;
 			}
 		}
 
 		return false;
+	}
+
+	public static boolean arquivoPastaExiste(Path destino) {
+		// NÃO utilizar Files.exists, Files.notExists, Files.isDirectory and Files.isRegularFile. Muito lento na JDK8
+		// Fonte: https://rules.sonarsource.com/java/tag/performance/RSPEC-3725
+		return destino.toFile().exists(); // Files.exists(destino);
+	}
+
+	public static boolean isDirectory(Path pasta) {
+		// NÃO utilizar Files.exists, Files.notExists, Files.isDirectory and Files.isRegularFile. Muito lento na JDK8
+		// Fonte: https://rules.sonarsource.com/java/tag/performance/RSPEC-3725
+		return pasta.toFile().isDirectory(); // Files.isDirectory(pasta);
+	}
+	
+	public static boolean isRegularFile(Path arquivo) {
+		// NÃO utilizar Files.exists, Files.notExists, Files.isDirectory and Files.isRegularFile. Muito lento na JDK8
+		// Fonte: https://rules.sonarsource.com/java/tag/performance/RSPEC-3725
+		return arquivo.toFile().isFile(); // Files.isRegularFile(arquivo);
 	}
 
 	/**
@@ -684,7 +748,7 @@ public class FGSincronizarConteudoPastas {
 	private long ultimaExibicaoListagemArquivosInexistentes = 0;
 	private void excluirArquivosInexistentes(Path origem, Path destino) throws IOException {
 
-		if (Files.exists(destino) && Files.isDirectory(destino) && Files.isReadable(destino)) {
+		if (arquivoPastaExiste(destino) && isDirectory(destino) && Files.isReadable(destino)) {
 			
 			// Mostra que está listando arquivos, mas não a toda hora.
 			long agora = System.currentTimeMillis();
@@ -708,7 +772,7 @@ public class FGSincronizarConteudoPastas {
 					pastaDeveExistir(origem);
 					
 					Path filhoOrigem = Paths.get(origem.toString(), filhoDestino.getFileName().toString());
-					if (!Files.exists(filhoOrigem)) {
+					if (!arquivoPastaExiste(filhoOrigem)) {
 						filhosParaExcluir.add(filhoDestino);
 					}
 				}
@@ -728,7 +792,7 @@ public class FGSincronizarConteudoPastas {
 	}
 
 	private void excluirRecursivamente(Path destino) throws IOException {
-		if (Files.isDirectory(destino)) {
+		if (isDirectory(destino)) {
 			final List<Object> pathsToDelete = Files.walk(destino).sorted(Comparator.reverseOrder())
 					.collect(Collectors.toList());
 			for (Object path : pathsToDelete) {
@@ -849,10 +913,12 @@ public class FGSincronizarConteudoPastas {
 
 	public static void main(String[] args) throws Exception {
 		
-		FGSincronizarConteudoPastas s = new FGSincronizarConteudoPastas(new File("/Users/taeta/Desktop/Lixo").toPath(), new File("/Users/taeta/Desktop/Lixo2").toPath());
-		s.simulacao = false;
-		s.excluirArquivosDoDestinoQueNaoExistemNaOrigem = true;
+		//FGSincronizarConteudoPastas s = new FGSincronizarConteudoPastas(new File("/Users/taeta/Desktop/Lixo").toPath(), new File("/Users/taeta/Desktop/Lixo2").toPath());
+		FGSincronizarConteudoPastas s = new FGSincronizarConteudoPastas(new File("T:\\ComBackup\\Empresas\\Inovare").toPath(), new File("J:\\BackupsFelipe\\BackupTimeCapsule\\Empresas\\Inovare").toPath());
+//		s.simulacao = true;
+//		s.excluirArquivosDoDestinoQueNaoExistemNaOrigem = true;
 		s.preservarVersoesAntigasDeArquivos = true;
+		s.setToleranciaMaximaDataModificacaoMillis(60);
 		s.sincronizar();
 		s.mostrarResultados();
 		LOGGER.info("FIM!");

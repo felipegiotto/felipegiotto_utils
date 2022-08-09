@@ -1,5 +1,7 @@
 package com.felipegiotto.spark;
 
+import java.io.UnsupportedEncodingException;
+
 import com.google.gson.Gson;
 
 import spark.Request;
@@ -30,6 +32,13 @@ public class FGSparkApi {
 	 * @return
 	 */
 	public <T> T fromJsonBody(Request request, Class<T> classOfT) {
+		
+		if (request.raw().getCharacterEncoding() == null) {
+		    try {
+				request.raw().setCharacterEncoding("UTF-8");
+			} catch (UnsupportedEncodingException e) {
+			}
+		}
 		return this.application.getGson().fromJson(request.body(), classOfT);
 	}
 	
