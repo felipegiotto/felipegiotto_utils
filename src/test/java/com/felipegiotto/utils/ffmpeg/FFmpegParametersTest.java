@@ -31,29 +31,29 @@ public class FFmpegParametersTest {
 		
 		// Tamanho definido
 		parameters.setVideoResolutionFixed(200, 300);
-		assertEquals("-vf scale=w=200:h=300", StringUtils.join(parameters.buildParameters(fileInfo), " "));
+		assertEquals("-vsync 0 -vf scale=w=200:h=300", StringUtils.join(parameters.buildParameters(fileInfo), " "));
 		
 		// Somente largura
 		parameters.setVideoResolutionFixed(200, null);
-		assertEquals("-vf scale=200:-1", StringUtils.join(parameters.buildParameters(fileInfo), " "));
+		assertEquals("-vsync 0 -vf scale=200:-1", StringUtils.join(parameters.buildParameters(fileInfo), " "));
 		
 		// Somente altura
 		parameters.setVideoResolutionFixed(null, 300);
-		assertEquals("-vf scale=-1:300", StringUtils.join(parameters.buildParameters(fileInfo), " "));
+		assertEquals("-vsync 0 -vf scale=-1:300", StringUtils.join(parameters.buildParameters(fileInfo), " "));
 		
 		// Altura e largura, mas mantendo proporção de entrada, sem obedecer múltiplo
 		parameters.setVideoResolutionConstrained(200, 200, null, false);
-		assertEquals("-vf scale=w=200:h=112", StringUtils.join(parameters.buildParameters(fileInfo), " "));
+		assertEquals("-vsync 0 -vf scale=w=200:h=112", StringUtils.join(parameters.buildParameters(fileInfo), " "));
 		
 		// Altura e largura, mas mantendo proporção de entrada e obedecendo múltiplo
 		parameters.setVideoResolutionConstrained(700, 500, 16, false);
-		assertEquals("-vf scale=w=688:h=384", StringUtils.join(parameters.buildParameters(fileInfo), " "));
+		assertEquals("-vsync 0 -vf scale=w=688:h=384", StringUtils.join(parameters.buildParameters(fileInfo), " "));
 		
 		// Altura e largura proporcional mas com vídeo tombado 
 		parameters.setVideoResolutionConstrained(500, 700, 16, true);
-		assertEquals("-vf scale=w=688:h=384", StringUtils.join(parameters.buildParameters(fileInfo), " "));
+		assertEquals("-vsync 0 -vf scale=w=688:h=384", StringUtils.join(parameters.buildParameters(fileInfo), " "));
 		parameters.setVideoResolutionConstrained(500, 700, 16, false);
-		assertEquals("-vf scale=w=496:h=272", StringUtils.join(parameters.buildParameters(fileInfo), " "));
+		assertEquals("-vsync 0 -vf scale=w=496:h=272", StringUtils.join(parameters.buildParameters(fileInfo), " "));
 	}
 
 	@Test
@@ -78,6 +78,6 @@ public class FFmpegParametersTest {
 		
 		// Tamanho definido
 		parameters.setVideoCropRectangle(new Rectangle(new Point(10, 20), new Dimension(100, 200)));
-		assertEquals("-vf crop=100:200:10:20", StringUtils.join(parameters.buildParameters(fileInfo), " "));
+		assertEquals("-vsync 0 -vf crop=100:200:10:20", StringUtils.join(parameters.buildParameters(fileInfo), " "));
 	}
 }

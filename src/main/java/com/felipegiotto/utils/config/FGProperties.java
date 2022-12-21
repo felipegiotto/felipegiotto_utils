@@ -10,6 +10,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.LocalDateTime;
 import java.util.Properties;
 
 import org.apache.commons.lang3.StringUtils;
@@ -435,6 +436,73 @@ public class FGProperties {
 		}
 	}
 	
+/*********************** LocalDateTime ***********************/
+	
+	/**
+	 * Grava uma propriedade no formato LocalDateTime.
+	 * 
+	 * O valor pode, inclusive, ser NULL.
+	 * 
+	 * @param key
+	 * @param value
+	 */
+	public void setLocalDateTime(String key, LocalDateTime value) {
+		setString(key, value != null ? value.toString() : NULL_VALUE);
+		changed = true;
+	}
+	
+	/**
+	 * Lê uma propriedade no formato LocalDateTime. 
+	 * 
+	 * O valor pode, inclusive, ser NULL, se foi utilizado setLocalDateTime(key, null); 
+	 * 
+	 * Se a propriedade não existir, returna NULL.
+	 * 
+	 * @param key
+	 * @return
+	 */
+	public LocalDateTime getLocalDateTime(String key) {
+		String value = properties.getProperty(key);
+		return isEmptyOrNullValue(value) ? null : LocalDateTime.parse(value);
+	}
+	
+	/**
+	 * Lê uma propriedade no formato LocalDateTime.
+	 * 
+	 * O valor pode, inclusive, ser NULL, se foi utilizado setLocalDateTime(key, null);
+	 * 
+	 * Se a propriedade não existir, lança {@link NotFoundException}
+	 * 
+	 * @param key
+	 * @return
+	 */
+	public LocalDateTime getLocalDateTimeMandatory(String key) {
+		if (properties.containsKey(key)) {
+			return getLocalDateTime(key);
+		} else {
+			throw new NotFoundException("Property not found: " + key);
+		}
+	}
+	
+	/**
+	 * Lê uma propriedade no formato LocalDateTime.
+	 * 
+	 * O valor pode, inclusive, ser NULL, se foi utilizado setLocalDateTime(key, null);
+	 * 
+	 * Se ela não existir, retorna o valor default
+	 * 
+	 * @param key
+	 * @return
+	 */
+	public LocalDateTime getLocalDateTime(String key, LocalDateTime defaultValue) {
+		if (properties.containsKey(key)) {
+			return getLocalDateTime(key);
+		} else {
+			return defaultValue;
+		}
+	}
+	
+	
 	/*********************** Float ***********************/
 	
 	/**
@@ -501,6 +569,8 @@ public class FGProperties {
 		}
 	}
 	
+	/*********************** Comum ***********************/
+
 	/**
 	 * Indica se houve alguma modificação neste objeto depois que ele foi criado (ou instanciado de um arquivo)
 	 * 
