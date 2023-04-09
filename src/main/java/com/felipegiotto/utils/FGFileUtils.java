@@ -112,6 +112,14 @@ public class FGFileUtils {
 			}
 		}
 		
+		// Tenta encontrar removendo aspas duplas do início e do final, que acontece ao "Copiar como caminho" no Windows
+		if (caminho.startsWith("\"") && caminho.endsWith("\"")) {
+			f = new File(caminho.substring(1, caminho.length()-1));
+			if (f.exists()) {
+				return f;
+			}
+		}
+		
 		if (obrigatorio) {
 			throw new FileNotFoundException("Arquivo não existe: " + caminho);
 		} else {

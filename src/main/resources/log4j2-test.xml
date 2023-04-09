@@ -3,19 +3,11 @@
 	<Appenders>
 		<Console name="Console" target="SYSTEM_OUT">
 			<PatternLayout pattern="%-5level - %msg%n" />
-			<!-- <ThresholdFilter level="INFO" onMatch="ACCEPT" onMismatch="DENY" /> --> <!-- Na tela, mostra somente determinado nivel para cima -->
 		</Console>
-		<RollingFile name="File" fileName="logs/report.log" filePattern="logs/report-%d{yyyy-MM-dd}--%i.log">
-			<Policies>
-				<OnStartupTriggeringPolicy />
-			</Policies>
-			<PatternLayout pattern="%d{HH:mm:ss.SSS} %-5level - %msg%n" />
-		</RollingFile>
 	</Appenders>
 	<Loggers>
 		<Root level="TRACE"> <!-- Por padrão, mostra tudo no log (prestar atenção no ThresholdFilter do ConsoleAppender) -->
 			<AppenderRef ref="Console" />
-			<AppenderRef ref="File" />
 		</Root>
 	</Loggers>
 </Configuration>

@@ -6,6 +6,7 @@ import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
@@ -167,6 +168,18 @@ public class FFmpegCommand {
 			commands.add("concat=n=" + inputFiles.size() + ":v=1:a=1");
 		}
 		
+		if (subtitleFile != null)
+		{
+			// TODO: Aceitar legenda em formato SSA
+			StringBuilder sbSubtitles = new StringBuilder();
+			String arquivoEscaped = subtitleFile.replaceAll("\\\\", "\\\\\\\\").replaceAll("\\:", "\\\\:");
+			sbSubtitles.append("subtitles='" + arquivoEscaped + "'");
+			if (subtitleFontSize != null) {
+				sbSubtitles.append(":force_style='Fontsize=" + subtitleFontSize + "'");
+			}
+			parameters.addVideoFilter(sbSubtitles.toString());
+		}
+		
 		FFmpegFileInfo fileInfoPrimeiroArquivo = new FFmpegFileInfo(new File(inputFiles.get(0)));
 		commands.addAll(parameters.buildParameters(fileInfoPrimeiroArquivo));
 		
@@ -194,6 +207,41 @@ public class FFmpegCommand {
 	
 	public void addInputFile(File inputFile) {
 		this.inputFiles.add(inputFile.getAbsolutePath());
+	}
+	
+	private String subtitleFile;
+	private Integer subtitleFontSize;
+	
+	/**
+	 * Configura um arquivo de legenda SRT, que deve estar codificado em UTF-8, para ser embutido no vídeo.
+	 * 
+	 * @param subtitleFile
+	 * @param fontSize : define o tamanho da fonte, informar "null" para padrão (16)
+	 */
+	public void setSubtitleFile(String subtitleFile, Integer fontSize) {
+		this.subtitleFile = subtitleFile;
+		this.subtitleFontSize = fontSize;
+	}
+	
+	/**
+	 * Configura um arquivo de legenda SRT com o mesmo nome do único arquivo de entrada (mas extensão SRT), que deve estar codificado em UTF-8, para ser embutido no vídeo.
+	 * @param fontSize : define o tamanho da fonte, informar "null" para padrão (16)
+	 */
+	public void setSubtitleFileSameName(Integer fontSize) {
+		if (this.inputFiles.size() != 1)
+		{
+			throw new InvalidParameterException("Para carregar um arquivo de legendas SRT com o mesmo nome do vídeo original, deveria haver 1 arquivo de vídeo de entrada, mas há " + this.inputFiles.size()); 
+		}
+		
+		// TODO: Aceitar legenda em formato SSA
+		String caminhoSrt = FilenameUtils.removeExtension(this.inputFiles.get(0)) + ".srt";
+		File fileSrt = new File(caminhoSrt);
+		if (fileSrt.isFile())
+		{
+			setSubtitleFile(fileSrt.getAbsolutePath(), fontSize);
+			return;
+		}
+		throw new InvalidParameterException("Arquivo SRT com nome do vídeo original não existe: " + fileSrt.getAbsolutePath());
 	}
 	
 	private String outputFile;

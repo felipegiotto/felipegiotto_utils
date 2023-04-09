@@ -55,6 +55,21 @@ public class FFmpegCommandTest {
 	}
 	
 	@Test
+	public void embutindoLegendas() throws Exception {
+		FFmpegCommand ffmpeg = criarObjetoMinimo();
+		ffmpeg.addInputFile("C:\\entrada.avi");
+		ffmpeg.setOutputFile("saida.avi");
+		ffmpeg.setSubtitleFile("C:\\legenda.srt", null); // Tamanho padrão
+		assertEquals(FFMPEG_TEST_PATH + " -i C:\\entrada.avi -vsync 0 -vf subtitles='C\\:\\\\legenda.srt' saida.avi", StringUtils.join(ffmpeg.buildParameters(), " "));
+		
+		ffmpeg = criarObjetoMinimo();
+		ffmpeg.addInputFile("C:\\entrada.avi");
+		ffmpeg.setOutputFile("saida.avi");
+		ffmpeg.setSubtitleFile("C:\\legenda.srt", 30); // Tamanho 30
+		assertEquals(FFMPEG_TEST_PATH + " -i C:\\entrada.avi -vsync 0 -vf subtitles='C\\:\\\\legenda.srt':force_style='Fontsize=30' saida.avi", StringUtils.join(ffmpeg.buildParameters(), " "));
+	}
+	
+	@Test
 	public void definindoCodecDeVideoComParametrosExtras() throws Exception {
 		FFmpegCommand ffmpeg = criarObjetoMinimo();
 		ffmpeg.addInputFile("entrada.avi");

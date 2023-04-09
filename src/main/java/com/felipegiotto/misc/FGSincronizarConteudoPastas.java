@@ -723,13 +723,29 @@ public class FGSincronizarConteudoPastas {
 	 * @return
 	 */
 	public boolean deveSincronizarPorTeremDatasDiferentes(FileTime origemTime, FileTime destinoTime, String descricaoOrigem) {
+		return deveSincronizarPorTeremDatasDiferentes(origemTime.toMillis(), destinoTime.toMillis(), toleranciaMaximaDataModificacaoMillis, descricaoOrigem);
+	}
+	
+	/**
+	 * Por causa de diferentes configurações de timezone, arquivos podem
+	 * estar sincronizados e possuir várias horas de diferença (já encontrei até 6 horas).
+	 * 
+	 * Por isso, vou usar a seguinte regra:
+	 * 1. Se a diferença for maior que 10 horas, sincroniza.
+	 * 2. Se a diferença for menor que 10 horas mas todos os outros campos
+	 *    forem iguais (até o segundo), considera que arquivo está OK.
+	 * @param origemMillis
+	 * @param destinoMillis
+	 * @return
+	 */
+	public static boolean deveSincronizarPorTeremDatasDiferentes(long origemTime, long destinoTime, long toleranciaMaximaDataModificacaoMillis, String descricaoOrigem) {
 		
-		long diferencaTotal = Math.abs(origemTime.toMillis() - destinoTime.toMillis());
+		long diferencaTotal = Math.abs(origemTime - destinoTime);
 		if (diferencaTotal < toleranciaMaximaDataModificacaoMillis) return false;
 		
 		long diferencaEmHoras = diferencaTotal / (60 * 60 * 1000);
 		if (diferencaEmHoras > 10) {
-			LOGGER.info(nome + "Data de modificacao diferente (" + origemTime + " - " + destinoTime + " - Diferenca de "
+			LOGGER.info("Data de modificacao diferente (" + origemTime + " - " + destinoTime + " - Diferenca de "
 					+ DurationFormatUtils.formatDurationHMS(diferencaTotal) + "): " + descricaoOrigem);
 			return true;
 		}
@@ -738,7 +754,7 @@ public class FGSincronizarConteudoPastas {
 		long restoDiferencaEmHoras = diferencaTotal % (60 * 60 * 1000);
 		restoDiferencaEmHoras = Math.min(Math.abs(restoDiferencaEmHoras), Math.abs(60 * 60 * 1000 - restoDiferencaEmHoras));
 		if (restoDiferencaEmHoras > toleranciaMaximaDataModificacaoMillis) {
-			LOGGER.info(nome + "Data de modificacao diferente (" + origemTime + " - " + destinoTime + " - Diferenca de "
+			LOGGER.info("Data de modificacao diferente (" + origemTime + " - " + destinoTime + " - Diferenca de "
 					+ DurationFormatUtils.formatDurationHMS(diferencaTotal) + "): " + descricaoOrigem);
 			return true;
 		}
